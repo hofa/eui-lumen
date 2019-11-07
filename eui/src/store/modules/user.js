@@ -1,13 +1,13 @@
-import { login, logout, getInfo, getPermission, refreshToken } from '@/api/user'
-import { getToken, setToken, removeToken, getExpiresIn } from '@/utils/auth'
-import { resetRouter } from '@/router'
+import { logout, getInfo, fetchPermission, refreshToken } from '@/api/user'
+import { getToken, setToken, removeToken, getExpiresIn, setPermission, getPermission, setName, getName } from '@/utils/auth'
+// import { resetRouter } from '@/router'
 
 const state = {
   token: getToken(),
   expiresIn: getExpiresIn(),
-  name: '',
+  name: getName(),
   avatar: '',
-  permission: []
+  permission: getPermission()
 }
 
 const mutations = {
@@ -30,24 +30,24 @@ const mutations = {
 
 const actions = {
   // user login
-  login({ commit }, userInfo) {
-    const { username, password } = userInfo
-    return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.data.token)
-        setToken(data.token)
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
+  // login({ commit }, userInfo) {
+  //   const { username, password } = userInfo
+  //   return new Promise((resolve, reject) => {
+  //     login({ username: username.trim(), password: password }).then(response => {
+  //       const { data } = response
+  //       commit('SET_TOKEN', data.data.token)
+  //       setToken(data.token)
+  //       resolve()
+  //     }).catch(error => {
+  //       reject(error)
+  //     })
+  //   })
+  // },
 
   // get user info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
+      getInfo().then(response => {
         const { data } = response
 
         if (!data) {
@@ -58,6 +58,7 @@ const actions = {
 
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
+        setName(name)
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -68,12 +69,12 @@ const actions = {
   // user logout
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
+      logout().then(() => {
         commit('SET_TOKEN', '')
         commit('SET_EXPIRESIN', '')
         commit('SET_PERMISSION', '')
         removeToken()
-        resetRouter()
+        // resetRouter()
         resolve()
       }).catch(error => {
         reject(error)
@@ -95,9 +96,10 @@ const actions = {
   // permission
   getPermission({ commit }) {
     return new Promise((resolve, reject) => {
-      getPermission(state.token).then(({ data }) => {
+      fetchPermission().then(({ data }) => {
         // console.log('getPermission', data)
         commit('SET_PERMISSION', data.data)
+        setPermission(data.data)
         resolve()
       }).catch(error => {
         reject(error)
@@ -108,7 +110,7 @@ const actions = {
   // refresh token
   refreshToken({ commit }) {
     return new Promise((resolve, reject) => {
-      refreshToken(state.token).then(({ data }) => {
+      refreshToken().then(({ data }) => {
         commit('SET_TOKEN', data.data.token)
         commit('SET_EXPIRESIN', data.data.expiresIn)
         setToken(data.data.token, data.data.expiresIn)

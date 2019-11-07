@@ -6,4 +6,5 @@
     "[html]":{
         "editor.formatOnSave": true
     },
+    "search.useIgnoreFiles": false
 }

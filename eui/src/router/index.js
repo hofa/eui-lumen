@@ -51,10 +51,12 @@ export const constantRoutes = [
     path: '/user',
     component: Layout,
     redirect: '/user/user',
+    meta: { title: '用户管理' },
     children: [
       {
         path: 'user',
-        component: () => import('@/views/hofa/user')
+        component: () => import('@/views/hofa/user'),
+        meta: { title: '用户' }
       },
       {
         path: 'level',
@@ -81,14 +83,17 @@ export const constantRoutes = [
     path: '/setting',
     component: Layout,
     redirect: '/setting/role',
+    meta: { title: '系统设置' },
     children: [
       {
         path: 'role',
-        component: () => import('@/views/hofa/role')
+        component: () => import('@/views/hofa/role'),
+        meta: { title: '角色' }
       },
       {
         path: 'menu',
-        component: () => import('@/views/hofa/menu')
+        component: () => import('@/views/hofa/menu'),
+        meta: { title: '菜单' }
       }
     ]
   },

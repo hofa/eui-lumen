@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Exceptions\ValidatorException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Str;
 use Tymon\JWTAuth\JWTAuth;
 
 class AuthController extends Controller
@@ -22,8 +24,8 @@ class AuthController extends Controller
             'username' => 'required',
             'password' => 'required',
         ]);
-
-        if (!$token = $this->jwt->attempt($request->only('username', 'password'))) {
+        $random = Str::random(10);
+        if (!$token = $this->jwt->customClaims(['rand' => $random])->attempt($request->only('username', 'password'))) {
             // $validator->errors()->add('username', 'Something is wrong with this field!');
             // return response()->json(['user_not_found'], 404);
             // $error = \Illuminate\Validation\ValidationException::withMessages([
@@ -40,7 +42,9 @@ class AuthController extends Controller
             // return response()->json(['username' => "用户不存在或者密码错误"], 422);
             ValidatorException::setError('username', '用户不存在或者密码错误');
         }
-
+        // dd($this->jwt);
+        // dd($this->jwt->user()->id);
+        Redis::set('device:' . $this->jwt->user()->id, $random);
         return [
             'data' => [
                 'token' => $token,
@@ -76,9 +80,10 @@ class AuthController extends Controller
 
     public function postRefresh(Request $request)
     {
+        // dd($this->jwt->parseToken()->refresh());
         return [
             'data' => [
-                'token' => $this->jwt->parseToken()->refreshToken(),
+                'token' => $this->jwt->parseToken()->refresh(),
                 'tokenType' => 'bearer',
                 'expiresIn' => Auth::factory()->getTTL() * 60,
             ],

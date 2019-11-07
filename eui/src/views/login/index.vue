@@ -49,7 +49,7 @@
 
 <script>
 import Form from '@/utils/form'
-import { setToken } from '@/utils/auth'
+import { setToken, setExpiresIn } from '@/utils/auth'
 export default {
   name: 'Login',
   data() {
@@ -89,7 +89,8 @@ export default {
         const expiresIn = new Date().getTime() + data.data.expiresIn * 1000
         this.$store.commit('user/SET_TOKEN', data.data.token)
         this.$store.commit('user/SET_EXPIRESIN', expiresIn)
-        setToken(data.data.token, expiresIn)
+        setToken(data.data.token)
+        setExpiresIn(expiresIn)
         this.$router.push({ path: '/user/user' })
         this.loading = false
       }).catch(() => {

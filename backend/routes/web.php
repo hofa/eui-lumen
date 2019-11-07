@@ -25,8 +25,6 @@ $router->get('/', function () use ($router) {
 $router->group(['middleware' => ['permission:api']], function () use ($router) {
     $router->get('/test', 'ExampleController@getUser');
 
-    $router->post('/auth/refresh', 'AuthController@postRefresh');
-
     $router->get('/roleMenu', 'RoleMenuController@getMenu');
     $router->get('/roleSidebar', 'RoleMenuController@getRoleSidebar');
     $router->get('/roleMenu3', 'RoleMenuController@getMenu3');
@@ -46,6 +44,7 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     $router->post('/user', 'UserController@postUser');
     $router->put('/user/{id}', 'UserController@putUser');
     $router->get('/user/permission', 'UserController@getPermission');
+
     $router->get('/user/info', 'UserController@getUserInfo');
 
     // $router->get('/user/info', function () use ($router) {
@@ -83,3 +82,5 @@ $router->group(['middleware' => ['auth:api', 'ipWhite']], function () use ($rout
 
 $router->post('/auth/login', 'AuthController@postLogin');
 $router->post('/auth/logout', 'AuthController@postLogout');
+$router->get('/user/permission/refresh', 'UserController@refreshPermission');
+$router->post('/auth/refresh', 'AuthController@postRefresh');

@@ -6,6 +6,7 @@ use App\Models\Role;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\Factory as Auth;
+use Illuminate\Support\Facades\Redis;
 
 class Permission
 {
@@ -39,7 +40,13 @@ class Permission
     {
         if ($this->auth->guard($guard)->guest()) {
             // return response('Unauthorized.', 401);
-            throw new AuthorizationException('密钥串验证不通过');
+            throw new AuthorizationException('密钥串验证不通过', 401);
+        }
+
+        $array = $this->auth->payload()->jsonSerialize();
+        $rand = $array['rand'] ?? '';
+        if (empty($rand) || $rand != Redis::get('device:' . $this->auth->getUser()->id)) {
+            throw new AuthorizationException('你的账号已经在其他设备登录，请及时更换密码', 401);
         }
 
         $route = $request->route();
@@ -52,7 +59,7 @@ class Permission
         $roleIds = $user->roles()->get();
 
         if (empty($roleIds)) {
-            throw new AuthorizationException('你还没有分配角色');
+            throw new AuthorizationException('你还没有分配角色', 401);
         } else {
             $roleIds = $roleIds->pluck('id')->toArray();
         }
@@ -69,7 +76,7 @@ class Permission
         // }
         // dd($data->toArray());
         if (empty($menu)) {
-            throw new AuthorizationException('权限不足' . $method . $pathInfo);
+            throw new AuthorizationException('权限不足' . $method . $pathInfo, 403);
         }
 
         // $request->getMethod();

@@ -338,6 +338,7 @@ export default {
         this.getOptions()
       }
     } else {
+      // console.log('allowOpen', allowOpen)
       this.$router.push('/401')
     }
   },

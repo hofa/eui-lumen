@@ -50,7 +50,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     public function getJWTCustomClaims()
     {
-        return [];
+        return ['datetime' => date('Y-m-d H:i:s')];
     }
 
     public function roles()

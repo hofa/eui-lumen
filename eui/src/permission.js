@@ -19,26 +19,33 @@ router.beforeEach(async(to, from, next) => {
 
   // determine whether the user has logged in
   const hasToken = getToken()
-  const hasExpiresIn = getExpiresIn()
-  if (hasToken) {
+  const expiresIn = getToken()
+  if (hasToken && expiresIn) {
+    // 刷新token
+    setInterval(async function() {
+      const t = getToken()
+      const i = getExpiresIn()
+      if (t && i - new Date().getTime() <= 5 * 60 * 1000) {
+        // if (t && i) {
+        // console.log('定时器前:' + store.getters.token)
+        await store.dispatch('user/refreshToken')
+        // console.log('定时器后:' + store.getters.token)
+      }
+    }, 1000 * 60)
+
     if (to.path === '/login') {
       // if is logged in, redirect to the home page
       next({ path: '/' })
       NProgress.done()
     } else {
-      const hasGetUserInfo = store.getters.name
-      if (hasGetUserInfo) {
+      const permission = store.getters.permission
+      if (permission) {
         next()
       } else {
         try {
           // get user info
           await store.dispatch('user/getInfo')
           await store.dispatch('user/getPermission')
-          setInterval(async function() {
-            if (hasExpiresIn - new Date().getTime() <= 5 * 60 * 1000) {
-              await store.dispatch('user/refreshToken')
-            }
-          }, 1000 * 10)
 
           next()
         } catch (error) {

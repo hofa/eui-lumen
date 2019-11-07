@@ -42,6 +42,15 @@
         icon="el-icon-download"
         @click="handleDownload"
       >导出</el-button>
+
+      <el-button
+        v-waves
+        :loading="refreshLoading"
+        class="filter-item"
+        type="primary"
+        icon="el-icon-refresh"
+        @click="handleRefresh"
+      >刷新角色缓存</el-button>
     </div>
 
     <el-divider />
@@ -89,7 +98,7 @@
           <el-button :disabled="btns.delete" size="mini" type="danger" @click="handleDelete(row)">删除</el-button>
 
           <el-button
-            :disabled="btns.permission"
+            :disabled="btns.permission || row.id==1"
             size="mini"
             type="warning"
             @click="handleMenu(row, $refs)"
@@ -177,6 +186,7 @@ import waves from '@/directive/waves' // waves directive
 import { parseTime, disable, allow } from '@/utils'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 // import { mapGetters } from 'vuex'
+import { getRefresh } from '@/api/role'
 export default {
   name: 'ComplexTable',
   components: { Pagination },
@@ -242,8 +252,8 @@ export default {
       optionForm: new Form({
         ins: 'status'
       }),
-      statusOption: []
-      // menuObj: null,
+      statusOption: [],
+      refreshLoading: false
     }
   },
   // computed: {
@@ -484,6 +494,20 @@ export default {
         : sort === `-${key}`
           ? 'descending'
           : ''
+    },
+    handleRefresh() {
+      this.refreshLoading = true
+      getRefresh().then(({ data }) => {
+        this.$notify({
+          title: 'Success',
+          message: data.meta.message,
+          type: 'success',
+          duration: 2000
+        })
+        this.refreshLoading = false
+      }).catch(() => {
+        this.refreshLoading = false
+      })
     }
   }
 }

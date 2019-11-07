@@ -15,7 +15,7 @@ export function getInfo() {
   })
 }
 
-export function getPermission() {
+export function fetchPermission() {
   return request({
     url: '/user/permission',
     method: 'get'
@@ -32,6 +32,6 @@ export function logout() {
 export function refreshToken() {
   return request({
     url: '/auth/refresh',
-    method: 'get'
+    method: 'post'
   })
 }

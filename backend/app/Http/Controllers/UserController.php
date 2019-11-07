@@ -58,6 +58,13 @@ class UserController extends Controller
         return ['data' => implode(';', $strs)];
     }
 
+    public function refreshPermission(Request $request)
+    {
+        $role = new Role;
+        $role->refreshCache();
+        return ['meta' => ['message' => '刷新成功']];
+    }
+
     public function postUser(Request $request)
     {
         $statusKeys = array_keys(config('options.status'));

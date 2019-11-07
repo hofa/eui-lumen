@@ -53,7 +53,7 @@ class Handler extends ExceptionHandler
         }
 
         if ($exception instanceof AuthorizationException) {
-            return $this->output($exception, 403);
+            return $this->output($exception, $exception->getCode());
         }
 
         if ($exception instanceof ValidationException) {
