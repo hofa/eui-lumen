@@ -1,0 +1,10 @@
+{
+    "editor.formatOnSave": false,
+    "[php]":{
+        "editor.formatOnSave": true
+    },
+    "[html]":{
+        "editor.formatOnSave": true
+    },
+    "search.useIgnoreFiles": false
+}

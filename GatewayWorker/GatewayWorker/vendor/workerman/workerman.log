@@ -1,0 +1,25 @@
+2019-11-09 09:56:42 pid:1 Register auth timeout (127.0.0.1). See http://doc2.workerman.net/register-auth-timeout.html
+2019-11-09 09:56:53 pid:1 Register auth timeout (127.0.0.1). See http://doc2.workerman.net/register-auth-timeout.html
+2019-11-09 10:15:28 pid:2368 Workerman[start.php] start in DEBUG mode
+2019-11-09 10:15:38 pid:2368 Workerman[start.php] stopping ...
+2019-11-09 10:15:38 pid:2368 Workerman[start.php] has been stopped
+2019-11-09 10:20:53 pid:18 Workerman[start.php] start in DEBUG mode
+2019-11-09 10:22:19 pid:18 Workerman[start.php] stopping ...
+2019-11-09 10:22:19 pid:18 Workerman[start.php] has been stopped
+2019-11-09 10:22:54 pid:28 Workerman[start.php] start in DAEMON mode
+2019-11-09 13:30:18 pid:15 Workerman[/var/websocket/start.php] start in DAEMON mode
+2019-11-09 13:33:36 pid:1 Workerman[/var/websocket/start.php] start in DAEMON mode
+2019-11-09 13:34:20 pid:1 Workerman[/var/websocket/start.php] start in DAEMON mode
+2019-11-09 13:36:45 pid:17 Workerman[/var/websocket/start.php] start in DAEMON mode
+2019-11-09 13:47:10 pid:31 Workerman[/var/websocket/start.php] restart 
+2019-11-09 13:47:10 pid:31 Workerman[/var/websocket/start.php] is stopping ...
+2019-11-09 13:47:10 pid:19 Workerman[start.php] stopping ...
+2019-11-09 13:47:10 pid:19 Workerman[start.php] has been stopped
+2019-11-09 13:47:10 pid:31 Workerman[/var/websocket/start.php] stop success
+2019-11-09 14:01:19 pid:43 Workerman[/var/websocket/start.php] restart 
+2019-11-09 14:01:19 pid:43 Workerman[/var/websocket/start.php] is stopping ...
+2019-11-09 14:01:19 pid:33 Workerman[start.php] stopping ...
+2019-11-09 14:01:19 pid:33 Workerman[start.php] has been stopped
+2019-11-09 14:01:19 pid:43 Workerman[/var/websocket/start.php] stop success
+2019-11-10 03:51:55 pid:21 Workerman[start.php] start in DAEMON mode
+2019-11-10 10:13:30 pid:15 Workerman[start.php] start in DAEMON mode

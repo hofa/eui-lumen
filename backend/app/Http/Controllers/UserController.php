@@ -114,6 +114,20 @@ class UserController extends Controller
         ]]);
     }
 
+    public function patchPassword(Request $request)
+    {
+        $user = Auth::getUser();
+        $this->validate($request, [
+            'password' => 'required',
+        ]);
+
+        $data['password'] = Hash::make($request->input('password'));
+        $user->fill($data)->save();
+        return (new UserResource($user))->additional(['meta' => [
+            'message' => '修改成功',
+        ]]);
+    }
+
     public function getUser(Request $request)
     {
         $user = new User;

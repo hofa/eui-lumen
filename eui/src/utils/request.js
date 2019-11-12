@@ -30,7 +30,6 @@ service.interceptors.request.use(
   },
   error => {
     // do something with request error
-    console.log('first:', error) // for debug
     return Promise.reject(error)
   }
 )
@@ -67,5 +66,5 @@ service.interceptors.response.use(
     return Promise.reject(error)
   }
 )
-
+// console.log(service)
 export default service

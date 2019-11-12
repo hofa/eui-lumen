@@ -44,7 +44,7 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     $router->post('/user', 'UserController@postUser');
     $router->put('/user/{id}', 'UserController@putUser');
     $router->get('/user/permission', 'UserController@getPermission');
-
+    $router->patch('/user/password', 'UserController@patchPassword');
     $router->get('/user/info', 'UserController@getUserInfo');
 
     // $router->get('/user/info', function () use ($router) {
@@ -84,3 +84,15 @@ $router->post('/auth/login', 'AuthController@postLogin');
 $router->post('/auth/logout', 'AuthController@postLogout');
 $router->get('/user/permission/refresh', 'UserController@refreshPermission');
 $router->post('/auth/refresh', 'AuthController@postRefresh');
+
+$router->get('/websocket/test', 'WebSocketController@test');
+$router->post('/websocket/bind', 'WebSocketController@bind');
+$router->post('/websocket/send/{touuid}', 'WebSocketController@send');
+$router->get('/websocket/customer', 'WebSocketController@customer');
+$router->post('/websocket/room/{touuid}', 'WebSocketController@room');
+$router->get('/websocket/history/{touuid}', 'WebSocketController@history');
+$router->get('/websocket/online', 'WebSocketController@online');
+
+$router->post('/websocket/customer/bind', 'WebSocketController@customerBind');
+$router->post('/websocket/customer/send', 'WebSocketController@customerSend');
+$router->get('/websocket/customer/history', 'WebSocketController@customerHistory');

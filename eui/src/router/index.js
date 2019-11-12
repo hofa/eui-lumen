@@ -48,6 +48,14 @@ export const constantRoutes = [
     component: () => import('@/views/hofa/home')
   },
   {
+    path: '/message/server',
+    component: () => import('@/views/message/server')
+  },
+  {
+    path: '/message/customer',
+    component: () => import('@/views/message/customer')
+  },
+  {
     path: '/user',
     component: Layout,
     redirect: '/user/user',

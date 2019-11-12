@@ -9,7 +9,9 @@
         "illuminate/redis": "^6.3",
         "laravel/lumen-framework": "^6.0",
         "predis/predis": "^1.1",
-        "tymon/jwt-auth": "^1.0@dev"
+        "tymon/jwt-auth": "^1.0@dev",
+        "workerman/gatewayclient": "^3.0",
+        "workerman/workerman": "^3.5"
     },
     "require-dev": {
         "fzaninotto/faker": "^1.4",

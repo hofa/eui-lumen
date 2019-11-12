@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\LoginEvent;
 use App\Exceptions\ValidatorException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\JWTAuth;
@@ -26,25 +28,10 @@ class AuthController extends Controller
         ]);
         $random = Str::random(10);
         if (!$token = $this->jwt->customClaims(['rand' => $random])->attempt($request->only('username', 'password'))) {
-            // $validator->errors()->add('username', 'Something is wrong with this field!');
-            // return response()->json(['user_not_found'], 404);
-            // $error = \Illuminate\Validation\ValidationException::withMessages([
-            //     'username' => ['用户不存在或者密码错误'],
-            //     // 'field_name_2' => ['Validation Message #2'],
-            // ]);
-            // throw $error;
-            // $validator = Validator::make([], []); // Empty data and rules fields
-            // $validator->errors()->add('username', '用户不存在或者密码错误');
-            // throw new \Illuminate\Validation\ValidationException($validator);
-            // throw \Illuminate\Validation\ValidationException::withMessages([
-            //     'username' => '用户不存在或者密码错误',
-            // ]);
-            // return response()->json(['username' => "用户不存在或者密码错误"], 422);
             ValidatorException::setError('username', '用户不存在或者密码错误');
         }
-        // dd($this->jwt);
-        // dd($this->jwt->user()->id);
-        Redis::set('device:' . $this->jwt->user()->id, $random);
+        Redis::setex('device:' . $this->jwt->user()->id, Auth::factory()->getTTL() * 60, $random);
+        Event::fire(new LoginEvent($this->jwt->user()));
         return [
             'data' => [
                 'token' => $token,
@@ -57,30 +44,19 @@ class AuthController extends Controller
         ];
     }
 
-    // public function refreshToken(Request $request)
-    // {
-    //     return response()->json([
-    //         'token' => $token,
-    //         'tokenType' => 'bearer',
-    //         'expiresIn' => Auth::factory()->getTTL() * 60,
-    //     ]);
-    // }
-
     public function postLogout(Request $request)
     {
-        // Auth::logout();
         try {
             $this->jwt->parseToken()->invalidate();
         } catch (\Exception $e) {
 
         }
-        // app('jwt.refresh');
         return ['meta' => ['message' => '退出成功']];
     }
 
     public function postRefresh(Request $request)
     {
-        // dd($this->jwt->parseToken()->refresh());
+        Redis::expired('device:' . $this->jwt->user()->id, Auth::factory()->getTTL() * 60);
         return [
             'data' => [
                 'token' => $this->jwt->parseToken()->refresh(),

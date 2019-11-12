@@ -1,0 +1,69 @@
+version: '3.7'
+
+volumes:
+    logs:
+        driver: local
+
+services:
+    web:
+        build:
+            context: ./
+            dockerfile: deploy/web.docker
+        volumes:
+            - ./:/var/www
+        ports:
+            - "80:80"
+        links:
+            - app
+    app:
+        # image: php:7-alpine
+        # working_dir: /var/www
+        # command: php -S 0.0.0.0:8080 -t public            
+        # ports:
+        #     - 80:8080
+        build:
+            context: ./
+            dockerfile: deploy/app.docker
+        volumes:
+            - .:/var/www
+            - ./storage/logs:/var/www/logs
+        links:
+            - database
+            - cache
+        environment:
+            - "docker=1"
+            - "DB_PORT=3306"
+            - "DB_HOST=database"
+            - "REDIS_PORT=6379"
+            - "REDIS_HOST=cache"
+    database:
+        image: mysql:8.0
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        environment:
+            - MYSQL_ROOT_PASSWORD=a123456
+            - MYSQL_DATABASE=fire_app
+            - MYSQL_USER=root
+            - MYSQL_PASSWORD=a123456
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./storage/db:/var/lib/mysql
+    cache:
+        image: redis:5.0
+        volumes:
+            - ./storage/redis:/data
+        entrypoint: redis-server --appendonly yes
+        restart: always
+        ports:
+            - "6379:6379"
+    websocket:
+        build:
+            context: ./
+            dockerfile: deploy/websocket.docker
+        volumes:
+            - ../GatewayWorker/GatewayWorker:/var/www
+        ports:
+            - "8282:8282"
+        tty: true
+        restart: on-failure

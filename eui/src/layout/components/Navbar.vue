@@ -5,12 +5,13 @@
     <breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
-      
+
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
           <span
-            style="display:block;margin-bottom:10px">
-            {{name}}
+            style="display:block;margin-bottom:10px"
+          >
+            {{ name }}
             <i class="el-icon-caret-bottom" />
           </span>
           <!-- <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar"> -->
@@ -28,12 +29,39 @@
           <a target="_blank" href="https://panjiachen.github.io/vue-element-admin-site/#/">
             <el-dropdown-item>Docs</el-dropdown-item>
           </a> -->
+          <el-dropdown-item><span style="display:block;" @click="handlePassword">修改密码</span></el-dropdown-item>
           <el-dropdown-item divided>
             <span style="display:block;" @click="logout">退出登录</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </div>
+
+    <el-dialog title="修改密码" :visible.sync="dialogFormVisible">
+      <el-form
+        ref="dataForm"
+        label-position="left"
+        label-width="70px"
+        style="width: 400px; margin-left:50px;"
+      >
+
+        <el-form-item
+          label="密码"
+          prop="password"
+          :error="form.errors.has('password') ? form.errors.get('password') : ''"
+        >
+          <el-input v-model="form.password" placeholder="密码" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="submitLoading"
+          @click="updatePassword()"
+        >确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -41,11 +69,20 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
-
+import Form from '@/utils/form'
 export default {
   components: {
     Breadcrumb,
     Hamburger
+  },
+  data() {
+    return {
+      dialogFormVisible: false,
+      submitLoading: false,
+      form: new Form({
+        password: ''
+      })
+    }
   },
   computed: {
     ...mapGetters([
@@ -61,6 +98,24 @@ export default {
     async logout() {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+    },
+    handlePassword() {
+      this.dialogFormVisible = true
+      this.form.reset()
+    },
+    updatePassword() {
+      this.form.patch('/user/password').then(({ data }) => {
+        this.$notify({
+          title: 'Success',
+          message: data.meta.message,
+          type: 'success',
+          duration: 2000
+        })
+        this.submitLoading = false
+        this.dialogFormVisible = false
+      }).catch(() => {
+        this.submitLoading = false
+      })
     }
   }
 }

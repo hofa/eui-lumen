@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        Commands\MenuCache::class,
     ];
 
     /**
@@ -24,6 +24,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        //
+        // $schedule->call(function () {
+        //     DB::table('recent_users')->delete();
+        // })->daily();
+        // * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+        $schedule->command('menuCache create --force')->timezone('Asia/Shanghai')->dailyAt('01:00')->onOneServer();
     }
 }

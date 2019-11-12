@@ -27,6 +27,10 @@ services:
         volumes:
             - .:/var/www
             - ./storage/logs:/var/www/logs
+            - ../GatewayWorker/GatewayWorker:/var/websocket
+        # command: php /var/websocket/start.php start -d
+        ports:
+            - "8282:8282"
         links:
             - database
             - cache

@@ -91,8 +91,14 @@ export default {
         this.$store.commit('user/SET_EXPIRESIN', expiresIn)
         setToken(data.data.token)
         setExpiresIn(expiresIn)
-        this.$router.push({ path: '/user/user' })
+        this.$notify({
+          title: 'Success',
+          message: data.meta.message,
+          type: 'success',
+          duration: 2000
+        })
         this.loading = false
+        this.$router.push({ path: '/user/user' })
       }).catch(() => {
         this.loading = false
       })
