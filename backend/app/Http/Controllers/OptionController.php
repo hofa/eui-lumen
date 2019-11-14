@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Role;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 
 class OptionController extends Controller
@@ -32,6 +33,18 @@ class OptionController extends Controller
             $output[$v['id']] = $v['name'];
             return $output;
         });
+        return $output;
+    }
+
+    public function getOptionSettingCate()
+    {
+        $data = Setting::where('type', 'Cate')->orderBy('sorted', 'asc')->get()->toArray();
+        $output = array_reduce($data, function (&$output, $v) {
+            $output[$v['id']] = $v['mark'];
+            return $output;
+        });
+
+        $output = array_merge([0 => '根节点'], $output);
         return $output;
     }
 

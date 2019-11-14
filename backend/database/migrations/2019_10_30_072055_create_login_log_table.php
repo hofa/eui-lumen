@@ -14,11 +14,14 @@ class CreateLoginLogTable extends Migration
     public function up()
     {
         $sf = array_keys(config('options.sf'));
-        Schema::create('login_log', function (Blueprint $table) use ($sf) {
+        $type = array_keys(config('options.loginLogType'));
+        Schema::create('login_log', function (Blueprint $table) use ($sf, $type) {
             $table->bigIncrements('id');
+            $table->string('username');
             $table->integer('user_id')->unsigned();
             $table->ipAddress('ip');
             $table->enum('status', $sf);
+            $table->enum('type', $type)->default('Normal');
             $table->index('user_id');
             $table->timestamps();
         });

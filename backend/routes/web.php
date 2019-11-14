@@ -57,6 +57,12 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     //     return $user;
     // });
 
+    $router->get('/setting', 'SettingController@getSetting');
+    $router->post('/setting', 'SettingController@postSetting');
+    $router->put('/setting/{id}', 'SettingController@putSetting');
+    $router->delete('/setting/{id}', 'SettingController@deleteSetting');
+    $router->patch('/setting/batchVal', 'SettingController@patchBatchValSetting');
+    $router->post('/setting/refresh', 'SettingController@postRefresh');
     $router->get('/option111', function (Request $request) use ($router) {
         $ins = $request->input('ins');
         $ins = explode(',', $ins);
@@ -74,6 +80,8 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     });
 
     $router->get('/option', 'OptionController@getOption');
+    $router->get('/loginLog', 'LoginLogController@getLoginLog');
+    $router->post('/loginLog/unlock', 'LoginLogController@postUnlock');
 });
 
 $router->group(['middleware' => ['auth:api', 'ipWhite']], function () use ($router) {

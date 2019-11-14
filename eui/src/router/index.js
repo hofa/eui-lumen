@@ -76,10 +76,12 @@ export const constantRoutes = [
     path: '/log',
     component: Layout,
     redirect: '/log/login',
+    meta: { title: '操作日志' },
     children: [
       {
         path: 'login',
-        component: () => import('@/views/hofa/loginLog')
+        component: () => import('@/views/hofa/loginLog'),
+        meta: { title: '登录日志' }
       },
       {
         path: 'action',
@@ -102,6 +104,11 @@ export const constantRoutes = [
         path: 'menu',
         component: () => import('@/views/hofa/menu'),
         meta: { title: '菜单' }
+      },
+      {
+        path: 'setting',
+        component: () => import('@/views/hofa/setting'),
+        meta: { title: '设置' }
       }
     ]
   },

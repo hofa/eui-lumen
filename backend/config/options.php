@@ -39,4 +39,18 @@ return [
         '422' => '数据验证错误',
         '500' => '服务器异常',
     ],
+    'settingType' => [
+        'Cate' => '分类',
+        'FKV' => '前端键值对',
+        'BKV' => '后端键值对',
+        'GKV' => '全局键值对',
+    ],
+    'loginLogType' => [
+        'Normal' => '正常',
+        'Password' => '密码错误',
+        'Username' => '用户名不存在',
+        'IPLimit' => 'IP限制',
+        'PasswordLimit' => '密码错误次数过多',
+        'Close' => '账号被禁',
+    ],
 ];

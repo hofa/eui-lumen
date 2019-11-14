@@ -6,3 +6,10 @@ export function getRefresh() {
     method: 'get'
   })
 }
+
+export function getSettingRefresh() {
+  return request({
+    url: '/setting/refresh',
+    method: 'post'
+  })
+}

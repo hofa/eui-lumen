@@ -32,7 +32,7 @@ class MenuController extends Controller
         ]);
 
         $menu = Menu::create($request->only([
-            'title', 'display', 'type', 'request_type', 'sorted', 'status', 'path', 'parent_id',
+            'title', 'display', 'type', 'request_type', 'sorted', 'status', 'path', 'parent_id', 'icon',
         ]));
         return (new MenuResource($menu))->additional(['meta' => ['message' => '创建成功']]);
     }
@@ -53,7 +53,7 @@ class MenuController extends Controller
             'parent_id' => 'required',
         ]);
         $menu->fill($request->only([
-            'title', 'display', 'type', 'request_type', 'sorted', 'status', 'path', 'parent_id',
+            'title', 'display', 'type', 'request_type', 'sorted', 'status', 'path', 'parent_id', 'icon',
         ]))->save();
         return (new MenuResource($menu))->additional(['meta' => ['message' => '修改成功']]);
     }

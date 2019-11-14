@@ -56,7 +56,7 @@ services:
     cache:
         image: redis:5.0
         volumes:
-            - ./storage/redis:/data
+            - ./storage/cache:/data
         entrypoint: redis-server --appendonly yes
         restart: always
         ports:

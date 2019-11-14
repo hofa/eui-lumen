@@ -49,7 +49,7 @@
 
 <script>
 import Form from '@/utils/form'
-import { setToken, setExpiresIn } from '@/utils/auth'
+import { setToken, setExpiresIn, removeToken } from '@/utils/auth'
 export default {
   name: 'Login',
   data() {
@@ -70,6 +70,9 @@ export default {
       },
       immediate: true
     }
+  },
+  created() {
+    removeToken()
   },
   methods: {
     showPwd() {
