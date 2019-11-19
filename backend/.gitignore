@@ -7,3 +7,4 @@ Homestead.yaml
 /storage/db
 /storage/redis
 /storage/cache
+/public/images

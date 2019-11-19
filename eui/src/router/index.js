@@ -85,7 +85,13 @@ export const constantRoutes = [
       },
       {
         path: 'action',
-        component: () => import('@/views/hofa/actionLog')
+        component: () => import('@/views/hofa/actionLog'),
+        meta: { title: '操作日志' }
+      },
+      {
+        path: 'IPBlackWhiteList',
+        component: () => import('@/views/hofa/IPBlackWhiteList'),
+        meta: { title: 'IP黑白名单' }
       }
     ]
   },

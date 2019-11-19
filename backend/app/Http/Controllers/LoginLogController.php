@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\LoginLog as LoginLogResource;
+use App\Models\ActionLog;
 use App\Models\LoginLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginLogController extends Controller
 {
@@ -35,6 +37,14 @@ class LoginLogController extends Controller
             'value' => 'required|alpha_dash',
         ]);
         (new LoginLog)->delError($request->input('value'));
+        ActionLog::create([
+            'user_id' => $id,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode(['value' => $request->input('value')], JSON_UNESCAPED_UNICODE),
+            'mark' => '登录解封',
+            'ip' => $request->ip(),
+        ]);
         return ['meta' => ['message' => '解封成功']];
     }
 }

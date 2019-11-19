@@ -36,6 +36,13 @@ class OptionController extends Controller
         return $output;
     }
 
+    public function getOptionRoleByIP()
+    {
+        $output = [0 => '所有角色'];
+        $output = array_merge($output, $this->getOptionRole());
+        return $output;
+    }
+
     public function getOptionSettingCate()
     {
         $data = Setting::where('type', 'Cate')->orderBy('sorted', 'asc')->get()->toArray();
@@ -48,11 +55,23 @@ class OptionController extends Controller
         return $output;
     }
 
-    // public function getOptionStatus()
-    // {
-    //     return [
-    //         'Normal' => '正常',
-    //         'Close' => '关闭',
-    //     ];
-    // }
+    public function getOptionActionType()
+    {
+        $output = [];
+        $role = new Role;
+        $data = $role->getCacheMenuByRoleId(1)->toArray();
+        $parent = [];
+        foreach ($data as $v) {
+            if ($v['type'] == 'Menu') {
+                $parent[$v['id']] = $v['title'];
+            }
+        }
+        foreach ($data as $v) {
+            if ($v['type'] == 'Node' && $v['request_type'] != 'Get') {
+                $pname = $parent[$v['parent_id']] ?? '';
+                $output[$v['id']] = $pname . ':' . $v['title'] . ':' . $v['id'];
+            }
+        }
+        return $output;
+    }
 }

@@ -62,4 +62,9 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     // {
     // User::observe(\App\Models\Observers\UserObserver::class);
     // }
+
+    public function userInfo()
+    {
+        return $this->belongsTo('App\Models\UserInfo', 'id', 'user_id');
+    }
 }

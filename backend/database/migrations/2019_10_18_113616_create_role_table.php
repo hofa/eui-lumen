@@ -17,6 +17,7 @@ class CreateRoleTable extends Migration
             $table->bigIncrements('id');
             $table->string('name')->unique();
             $table->enum('status', ['Normal', 'Close'])->default('Normal');
+            $table->enum('ip_white_enabled', ['Normal', 'Close'])->default('Close');
             $table->timestamps();
         });
     }

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\ValidatorException;
 use App\Http\Resources\Setting as SettingResource;
+use App\Models\ActionLog;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
@@ -45,7 +47,7 @@ class SettingController extends Controller
         $this->validate($request, [
             'type' => ['required', Rule::in($settingType)],
             'field' => 'required|alpha_dash|unique:setting',
-            'val' => 'required|alpha_dash',
+            'val' => 'required',
             'sorted' => 'required|integer',
             'mark' => 'required|alpha_dash',
             'parent_id' => 'required|integer',
@@ -69,14 +71,38 @@ class SettingController extends Controller
         }
 
         $setting = Setting::create($data);
-        return (new SettingResource($setting))->additional(['meta' => ['message' => '新增成功']]);
+        $resource = new SettingResource($setting);
+        ActionLog::create([
+            'user_id' => 0,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
+            'mark' => '创建配置',
+            'ip' => $request->ip(),
+        ]);
+        return $resource->additional(['meta' => ['message' => '新增成功']]);
     }
 
     public function patchBatchValSetting(Request $request)
     {
         $params = $request->all();
+        $oldParams = [];
         foreach ($params as $key => $val) {
+            $oldParams[$key] = Setting::where('field', $key)->first()->val;
             Setting::where('field', $key)->update(['val' => $val]);
+        }
+
+        $collection = collect($params);
+        $diff = $collection->diff($oldParams);
+        if (!empty($diff)) {
+            ActionLog::create([
+                'user_id' => 0,
+                'action_user_id' => Auth::user()->id,
+                'module_id' => $request['menu']['id'],
+                'diff' => json_encode($diff, JSON_UNESCAPED_UNICODE),
+                'mark' => '修改配置值',
+                'ip' => $request->ip(),
+            ]);
         }
         return ['meta' => ['message' => '保存成功']];
     }
@@ -87,7 +113,7 @@ class SettingController extends Controller
         $this->validate($request, [
             'type' => 'required',
             'field' => 'required|alpha_dash',
-            'val' => 'required|alpha_dash',
+            'val' => 'required',
             'sorted' => 'required|integer',
             'mark' => 'required|alpha_dash',
             'parent_id' => 'required|integer',
@@ -109,15 +135,37 @@ class SettingController extends Controller
         if (empty($data['options'])) {
             unset($data['options']);
         }
-
+        $oldResource = new SettingResource($setting);
+        $collection = collect($oldResource->toArray($request));
         $setting->fill($data)->save();
-        return (new SettingResource($setting))->additional(['meta' => ['message' => '修改成功']]);
+        $resource = new SettingResource($setting);
+        $diff = $collection->diff($resource->toArray($request));
+        if (!empty($diff)) {
+            ActionLog::create([
+                'user_id' => 0,
+                'action_user_id' => Auth::user()->id,
+                'module_id' => $request['menu']['id'],
+                'diff' => json_encode($diff, JSON_UNESCAPED_UNICODE),
+                'mark' => '修改配置字段',
+                'ip' => $request->ip(),
+            ]);
+        }
+        return $resource->additional(['meta' => ['message' => '修改成功']]);
     }
 
     public function deleteSetting(Request $request, $id)
     {
         $setting = Setting::findOrFail($id);
         $setting->delete();
-        return (new SettingResource($setting))->additional(['meta' => ['message' => '删除成功']]);
+        $resource = new SettingResource($setting);
+        ActionLog::create([
+            'user_id' => 0,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
+            'mark' => '删除配置字段',
+            'ip' => $request->ip(),
+        ]);
+        return $resource->additional(['meta' => ['message' => '删除成功']]);
     }
 }

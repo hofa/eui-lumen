@@ -15,7 +15,7 @@ class Username implements Rule
      */
     public function passes($attribute, $value)
     {
-        return preg_match('/^\S*$/u', $value);
+        return preg_match('/^\S*$/', $value);
     }
 
     /**

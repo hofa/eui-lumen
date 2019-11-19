@@ -243,7 +243,7 @@ export default {
       listQuery: {
         page: 1,
         limit: 20,
-        sort: '*id'
+        sort: '-id'
       },
       downloadLoading: false,
       submitLoading: false,

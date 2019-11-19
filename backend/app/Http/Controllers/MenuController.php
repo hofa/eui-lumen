@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\Menu as MenuResource;
+use App\Models\ActionLog;
 use App\Models\Menu;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class MenuController extends Controller
 {
@@ -34,7 +36,16 @@ class MenuController extends Controller
         $menu = Menu::create($request->only([
             'title', 'display', 'type', 'request_type', 'sorted', 'status', 'path', 'parent_id', 'icon',
         ]));
-        return (new MenuResource($menu))->additional(['meta' => ['message' => '创建成功']]);
+        $resource = new MenuResource($menu);
+        ActionLog::create([
+            'user_id' => 0,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
+            'mark' => '新增菜单',
+            'ip' => $request->ip(),
+        ]);
+        return $resource->additional(['meta' => ['message' => '创建成功']]);
     }
 
     public function putMenu(Request $request, $id)
@@ -52,9 +63,22 @@ class MenuController extends Controller
             // 'extends' => 'required',
             'parent_id' => 'required',
         ]);
+        $oldResource = new MenuResource($menu);
+        $collection = collect($oldResource->toArray($request));
         $menu->fill($request->only([
             'title', 'display', 'type', 'request_type', 'sorted', 'status', 'path', 'parent_id', 'icon',
         ]))->save();
+        $diff = $collection->diff($resource->toArray($request));
+        if (!empty($diff)) {
+            ActionLog::create([
+                'user_id' => 0,
+                'action_user_id' => Auth::user()->id,
+                'module_id' => $request['menu']['id'],
+                'diff' => json_encode($diff, JSON_UNESCAPED_UNICODE),
+                'mark' => '修改菜单',
+                'ip' => $request->ip(),
+            ]);
+        }
         return (new MenuResource($menu))->additional(['meta' => ['message' => '修改成功']]);
     }
 

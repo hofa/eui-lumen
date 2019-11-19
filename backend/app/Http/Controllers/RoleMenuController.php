@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\Role as RoleResource;
+use App\Models\ActionLog;
 use App\Models\Menu;
 use App\Models\Role;
 use Illuminate\Http\Request;
@@ -15,13 +16,27 @@ class RoleMenuController extends Controller
         $role = Role::findOrFail($id);
         $role->menus()->detach();
         $ids = (array) $request->input('ids', []);
+        $oldResource = new RoleResource($role);
+        $collection = collect($oldResource->toArray($request));
         foreach ($ids as $id) {
             $menu = Menu::find($id);
             if ($menu) {
                 $role->menus()->attach($menu);
             }
         }
-        return (new RoleResource($role))->additional(['meta' => ['message' => '授权成功']]);
+        $resource = new RoleResource($role);
+        $diff = $collection->diff($resource->toArray($request));
+        if (!empty($diff)) {
+            ActionLog::create([
+                'user_id' => 0,
+                'action_user_id' => Auth::user()->id,
+                'module_id' => $request['menu']['id'],
+                'diff' => json_encode($diff, JSON_UNESCAPED_UNICODE),
+                'mark' => '授权',
+                'ip' => $request->ip(),
+            ]);
+        }
+        return $resource->additional(['meta' => ['message' => '授权成功']]);
     }
 
     public function deleteRole(Request $request, $id)
@@ -29,7 +44,16 @@ class RoleMenuController extends Controller
         $role = Role::findOrFail($id);
         $role->menus()->detach();
         $role->delete();
-        return (new RoleResource($role))->additional(['meta' => ['message' => '删除成功']]);
+        $resource = new RoleResource($role);
+        ActionLog::create([
+            'user_id' => 0,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
+            'mark' => '删除角色',
+            'ip' => $request->ip(),
+        ]);
+        return $resource->additional(['meta' => ['message' => '删除成功']]);
     }
 
     public function postRole(Request $request)
@@ -37,10 +61,20 @@ class RoleMenuController extends Controller
         $this->validate($request, [
             'name' => 'required',
             'status' => 'required',
+            'ip_white_enabled' => 'required',
         ]);
 
-        $role = Role::create($request->only(['name', 'status']));
-        return (new RoleResource($role))->additional(['meta' => ['message' => '创建成功']]);
+        $role = Role::create($request->only(['name', 'status', 'ip_white_enabled']));
+        $resource = new RoleResource($role);
+        ActionLog::create([
+            'user_id' => 0,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
+            'mark' => '创建角色',
+            'ip' => $request->ip(),
+        ]);
+        return $resource->additional(['meta' => ['message' => '创建成功']]);
     }
 
     public function putRole(Request $request, $id)
@@ -50,12 +84,25 @@ class RoleMenuController extends Controller
             'name' => 'required',
             'status' => 'required',
         ]);
-        // return $id;
-        // return $role->save($request->only(['name', 'status']));
+        $oldResource = new RoleResource($role);
+        $collection = collect($oldResource->toArray($request));
         $role->name = $request->input('name');
         $role->status = $request->input('status');
+        $role->ip_white_enabled = $request->input('ip_white_enabled');
         $role->save();
-        return (new RoleResource($role))->additional(['meta' => ['message' => '修改成功']]);
+        $resource = new RoleResource($role);
+        $diff = $collection->diff($resource->toArray($request));
+        if (!empty($diff)) {
+            ActionLog::create([
+                'user_id' => 0,
+                'action_user_id' => Auth::user()->id,
+                'module_id' => $request['menu']['id'],
+                'diff' => json_encode($diff, JSON_UNESCAPED_UNICODE),
+                'mark' => '修改个人信息',
+                'ip' => $request->ip(),
+            ]);
+        }
+        return $resource->additional(['meta' => ['message' => '修改成功']]);
     }
 
     public function getRole(Request $request)

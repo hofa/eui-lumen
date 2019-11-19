@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\ValidatorException;
 use App\Models\LoginLog;
 use App\Models\User;
+use App\Models\UserInfo;
 use App\Rules\Username;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -95,6 +96,10 @@ class AuthController extends Controller
         Redis::setex('device:' . $user->id, Auth::factory()->getTTL() * 60, $random);
         // Event::fire(new LoginEvent($this->jwt->user()));
         $loginLog->decrError($request->ip(), $user->username);
+        UserInfo::where('user_id', $user->id)->update([
+            'last_login_time' => date('Y-m-d H:i:s'),
+            'last_login_ip' => $request->ip(),
+        ]);
         return [
             'data' => [
                 'token' => $token,

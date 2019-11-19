@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Tools;
 use App\Http\Resources\User as UserResource;
+use App\Models\ActionLog;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserInfo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -26,16 +29,7 @@ class UserController extends Controller
         $role = new Role;
         $model = Auth::getUser();
         $roleIds = $model->roles()->get()->pluck('id')->toArray();
-        // $menu = new Menu;
-        // if (!in_array(1, $rolesIds)) {
-        //     $menu->whereHas('roles', function ($obj) use ($rolesIds) {
-        //         $obj->whereIn('id', $rolesIds);
-        //     });
-        // }
-
-        // $data = $menu->where('status', 'Normal')->get();
         $data = $role->getCacheMenuByRoleId($roleIds)->toArray();
-        // dd($data);
         $strs = [];
         foreach ($data as $k => $v) {
             $v = (object) $v;
@@ -51,10 +45,6 @@ class UserController extends Controller
                     break;
             }
         }
-        // $role = new Role;
-        // $role->refreshCache();
-        // $data = $role->getCacheMenuByRoleId(2);
-        // dd($data->values()->all());
         return ['data' => implode(';', $strs)];
     }
 
@@ -70,7 +60,7 @@ class UserController extends Controller
         $statusKeys = array_keys(config('options.status'));
         $this->validate($request, [
             'username' => 'required|unique:user',
-            'password' => 'required',
+            'password' => 'required|password',
             'status' => [
                 'required',
                 Rule::in($statusKeys),
@@ -84,13 +74,31 @@ class UserController extends Controller
             $role = Role::find($id);
             $user->roles()->attach($role);
         }
-        return (new UserResource($user))->additional(['meta' => [
+
+        UserInfo::create([
+            'user_id' => $user->id,
+            'from_user_id' => Auth::user()->id,
+            'register_ip' => $request->ip(),
+            'nickname' => $request->input('username'),
+        ]);
+
+        $resource = new UserResource($user);
+        ActionLog::create([
+            'user_id' => $user->id,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
+            'mark' => '创建账号',
+            'ip' => $request->ip(),
+        ]);
+        return $resource->additional(['meta' => [
             'message' => '创建成功',
         ]]);
     }
 
     public function putUser(Request $request, $id)
     {
+        $id = Tools::getIdByHash($id);
         $user = User::findOrFail($id);
         $this->validate($request, [
             'status' => 'required',
@@ -101,7 +109,11 @@ class UserController extends Controller
             $fillFields[] = 'password';
         }
         $data = $request->only($fillFields);
-        $data['password'] = Hash::make($request->input('password'));
+        if (!empty($request->input('password'))) {
+            $data['password'] = Hash::make($request->input('password'));
+        }
+        $oldResource = new UserResource($user);
+        // $collection = collect($oldResource->toArray($request));
         $user->fill($data)->save();
         $user->roles()->detach();
         $roleIds = (array) $request->input('role');
@@ -109,7 +121,30 @@ class UserController extends Controller
             $role = Role::find($id);
             $user->roles()->attach($role);
         }
-        return (new UserResource($user))->additional(['meta' => [
+
+        $resource = new UserResource($user);
+        // $collection = collect($resource->toArray($request));
+        $diff = $collection->diff($oldResource);
+        if (!empty($request->input('password'))) {
+            $password = $request->input('password');
+            $start = mb_substr($password, 0, 2);
+            $end = mb_substr($password, -1, 2);
+            $length = mb_strlen($password) - 4;
+            $password = $start . str_repeat('*', $length) . $end;
+            $diff['password'] = $password;
+        }
+
+        if (!empty($diff)) {
+            ActionLog::create([
+                'user_id' => $user->id,
+                'action_user_id' => Auth::user()->id,
+                'module_id' => $request['menu']['id'],
+                'diff' => json_encode($diff, JSON_UNESCAPED_UNICODE),
+                'mark' => '修改账号',
+                'ip' => $request->ip(),
+            ]);
+        }
+        return $resource->additional(['meta' => [
             'message' => '修改成功',
         ]]);
     }
@@ -123,7 +158,22 @@ class UserController extends Controller
 
         $data['password'] = Hash::make($request->input('password'));
         $user->fill($data)->save();
-        return (new UserResource($user))->additional(['meta' => [
+        $password = $request->input('password');
+        $start = mb_substr($password, 0, 2);
+        $end = mb_substr($password, -1, 2);
+        $length = mb_strlen($password) - 4;
+        $password = $start . str_repeat('*', $length) . $end;
+
+        $resource = new UserResource($user);
+        ActionLog::create([
+            'user_id' => Auth::user()->id,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode(['password' => $password], JSON_UNESCAPED_UNICODE),
+            'mark' => '修改登录密码',
+            'ip' => $request->ip(),
+        ]);
+        return $resource->additional(['meta' => [
             'message' => '修改成功',
         ]]);
     }
@@ -131,10 +181,20 @@ class UserController extends Controller
     public function getUser(Request $request)
     {
         $user = new User;
+        // DB::enableQueryLog(); // Enable query log
         $createdAt = (array) $request->input('created_at');
-        $request->input('username') && $user = $user->where('username', $request->input('username'));
+        $field = strtolower($request->input('field'));
+        $val = $request->input('val');
+        if ($field == 'username' && !empty($val)) {
+            $user = $user->where('username', $val);
+        } else if (!empty($val)) {
+            $user = $user->whereHas('userInfo', function ($r) use ($field, $val) {
+                $r->encryptWhere($field, $val);
+            });
+        }
+        // dd($user->get());
+
         $request->input('status') && $user = $user->where('status', $request->input('status'));
-        // $request->input('role') && $user = $user->where('role', $request->input('role'));
         if (!empty($request->input('role'))) {
             $user = $user->whereHas('roles', function ($r) use ($request) {
                 return $r->where('role_id', $request->input('role'));
@@ -149,8 +209,8 @@ class UserController extends Controller
             $user = $user->orderBy($sortField, $sortBy);
         }
         $pageSize = $request->input('psize', 20);
-        // $data = $user->simplePaginate($pageSize)->appends($request->query());
         $data = $user->paginate($pageSize)->appends($request->query());
+        // dd(DB::getQueryLog());
         return UserResource::collection($data);
     }
 }

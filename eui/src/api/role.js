@@ -7,6 +7,13 @@ export function getRefresh() {
   })
 }
 
+export function getIPBlackWhiteListRefresh() {
+  return request({
+    url: '/IPBlackWhiteList/refresh',
+    method: 'post'
+  })
+}
+
 export function getSettingRefresh() {
   return request({
     url: '/setting/refresh',

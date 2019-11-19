@@ -87,6 +87,11 @@
           <span>{{ scope.row.created_at }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="IP白名单" width="80px">
+        <template slot-scope="{row}">
+          <el-tag :type="row.ip_white_enabled | statusFilter">{{ statusOption[row.ip_white_enabled] }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="状态" width="80px">
         <template slot-scope="{row}">
           <el-tag :type="row.status | statusFilter">{{ statusOption[row.status] }}</el-tag>
@@ -136,6 +141,21 @@
           :error="form.errors.has('status') ? form.errors.get('status') : ''"
         >
           <el-select v-model="form.status" class="filter-item" placeholder="请选择">
+            <el-option
+              v-for="(item, index) in statusOption"
+              :key="index"
+              :label="item"
+              :value="index"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item
+          label="IP白名单"
+          prop="ip_white_enabled"
+          :error="form.errors.has('ip_white_enabled') ? form.errors.get('ip_white_enabled') : ''"
+        >
+          <el-select v-model="form.ip_white_enabled" class="filter-item" placeholder="请选择">
             <el-option
               v-for="(item, index) in statusOption"
               :key="index"
@@ -247,7 +267,8 @@ export default {
       form: new Form({
         id: 0,
         name: '',
-        status: ''
+        status: 'Normal',
+        ip_white_enabled: 'Close'
       }),
       optionForm: new Form({
         ins: 'status'

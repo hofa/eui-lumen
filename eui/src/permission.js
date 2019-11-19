@@ -25,7 +25,7 @@ router.beforeEach(async(to, from, next) => {
     setInterval(async function() {
       const t = getToken()
       const i = getExpiresIn()
-      if (t && i - new Date().getTime() <= 5 * 60 * 1000) {
+      if (t && i - new Date().getTime() <= 30 * 60 * 1000) {
         // if (t && i) {
         // console.log('定时器前:' + store.getters.token)
         await store.dispatch('user/refreshToken')

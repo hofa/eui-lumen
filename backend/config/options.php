@@ -53,4 +53,19 @@ return [
         'PasswordLimit' => '密码错误次数过多',
         'Close' => '账号被禁',
     ],
+    'userSearchField' => [
+        'Username' => '账号',
+        'Mobile' => '手机号码',
+        'Nickname' => '昵称',
+        'Weixin' => '微信号',
+        'QQ' => 'QQ号',
+        'Idcard' => '身份证号',
+        'Real_name' => '真实姓名',
+        'Register_ip' => '注册IP',
+        'Last_login_ip' => '最后登录IP',
+    ],
+    'IPBlackWhiteListType' => [
+        'White' => '白名单',
+        'Black' => '黑名单',
+    ],
 ];

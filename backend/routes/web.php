@@ -1,5 +1,4 @@
 <?php
-use Illuminate\Http\Request;
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -47,15 +46,8 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     $router->patch('/user/password', 'UserController@patchPassword');
     $router->get('/user/info', 'UserController@getUserInfo');
 
-    // $router->get('/user/info', function () use ($router) {
-    //     $user = [
-    //         "roles" => ['admin'],
-    //         "introduction" => 'I am a super administrator',
-    //         "avatar" => 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
-    //         "name" => 'Super Admin',
-    //     ];
-    //     return $user;
-    // });
+    $router->get('/user/info/{id}', 'UserInfoController@getUserInfo');
+    $router->put('/user/info/{id}', 'UserInfoController@putUserInfo');
 
     $router->get('/setting', 'SettingController@getSetting');
     $router->post('/setting', 'SettingController@postSetting');
@@ -63,25 +55,21 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     $router->delete('/setting/{id}', 'SettingController@deleteSetting');
     $router->patch('/setting/batchVal', 'SettingController@patchBatchValSetting');
     $router->post('/setting/refresh', 'SettingController@postRefresh');
-    $router->get('/option111', function (Request $request) use ($router) {
-        $ins = $request->input('ins');
-        $ins = explode(',', $ins);
-        $output = [];
-        $defines = [
-            'status' => [
-                'Normal' => '正常',
-                'Close' => '关闭',
-            ],
-        ];
-        foreach ($ins as $in) {
-            isset($defines[$in]) && $output[$in] = $defines[$in];
-        }
-        return $output;
-    });
 
     $router->get('/option', 'OptionController@getOption');
+
     $router->get('/loginLog', 'LoginLogController@getLoginLog');
     $router->post('/loginLog/unlock', 'LoginLogController@postUnlock');
+
+    $router->get('/actionLog', 'ActionLogController@getActionLog');
+
+    $router->post('/upload', 'UploadController@postUpload');
+
+    $router->get('/IPBlackWhiteList', 'IPBlackWhiteListController@getIPBlackWhiteList');
+    $router->post('/IPBlackWhiteList', 'IPBlackWhiteListController@postIPBlackWhiteList');
+    // $router->put('/IPBlackWhiteList/{id}', 'IPBlackWhiteListController@putIPBlackWhiteList');
+    $router->delete('/IPBlackWhiteList/{id}', 'IPBlackWhiteListController@deleteIPBlackWhiteList');
+    $router->post('/IPBlackWhiteList/refresh', 'IPBlackWhiteListController@refreshIPBlackWhiteList');
 });
 
 $router->group(['middleware' => ['auth:api', 'ipWhite']], function () use ($router) {

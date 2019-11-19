@@ -6,6 +6,7 @@
     "type": "project",
     "require": {
         "php": "^7.2",
+        "hashids/hashids": "^4.0",
         "illuminate/redis": "^6.3",
         "laravel/lumen-framework": "^6.0",
         "predis/predis": "^1.1",

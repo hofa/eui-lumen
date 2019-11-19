@@ -20,6 +20,7 @@ class CreateActionLogTable extends Migration
             $table->json('diff');
             $table->integer('action_user_id')->unsigned();
             $table->ipAddress('ip');
+            $table->string('mark')->nullable(true);
             $table->timestamps();
             $table->index('user_id');
         });

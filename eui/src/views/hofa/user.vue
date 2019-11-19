@@ -1,9 +1,19 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
+      <el-select
+        v-model="searchForm.field"
+        placeholder="条件"
+        filterable
+        clearable
+        style="width: 90px"
+        class="filter-item"
+      >
+        <el-option v-for="(item, index) in userSearchFieldOption" :key="index" :label="item" :value="index" />
+      </el-select>
       <el-input
-        v-model="searchForm.username"
-        placeholder="账号"
+        v-model="searchForm.val"
+        placeholder="值"
         style="width: 200px;"
         class="filter-item"
         @keyup.enter.native="handleFilter"
@@ -76,24 +86,24 @@
       style="width: 100%;"
       @sort-change="sortChange"
     >
-      <el-table-column
+      <!-- <el-table-column
         label="ID"
         prop="id"
         sortable="custom"
         align="center"
-        width="80"
+        width="120"
         :class-name="getSortClass('id')"
       >
         <template slot-scope="scope">
           <span>{{ scope.row.id }}</span>
         </template>
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column label="账号" width="150px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.username }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" min-width="200px" align="center">
+      <el-table-column label="创建时间" min-width="200px" align="center" prop="created_at" sortable="custom" :class-name="getSortClass('created_at')">
         <template slot-scope="scope">
           <span>{{ scope.row.created_at }}</span>
         </template>
@@ -111,6 +121,7 @@
       <el-table-column label="操作" width="200px" align="center">
         <template slot-scope="{row}">
           <el-button type="primary" size="mini" :disabled="btns.edit" @click="handleUpdate(row)">编辑</el-button>
+          <el-button type="primary" size="mini" :disabled="btns.info" @click="handleInfoUpdate(row)">个人信息</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -195,6 +206,160 @@
         >确定</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog title="个人信息" :visible.sync="dialogInfoFormVisible">
+
+      <el-col :span="12">
+        <el-form
+          ref="dataInfoForm"
+          label-position="left"
+          label-width="90px"
+          style="width: 250px; margin-left:20px;"
+        >
+
+          <el-form-item
+            label="QQ"
+            prop="qq"
+            :error="infoForm.errors.has('qq') ? infoForm.errors.get('qq') : ''"
+          >
+            <el-input v-model="infoForm.qq" placeholder="QQ号" />
+          </el-form-item>
+
+          <el-form-item
+            label="微信"
+            prop="weixin"
+            :error="infoForm.errors.has('weixin') ? infoForm.errors.get('weixin') : ''"
+          >
+            <el-input v-model="infoForm.weixin" placeholder="微信号" />
+          </el-form-item>
+
+          <el-form-item
+            label="手机区号"
+            prop="mobile_area"
+            :error="infoForm.errors.has('mobile_area') ? infoForm.errors.get('mobile_area') : ''"
+          >
+            <el-input v-model="infoForm.mobile_area" placeholder="手机区号" />
+          </el-form-item>
+          <el-form-item
+            label="手机"
+            prop="mobile"
+            :error="infoForm.errors.has('mobile') ? infoForm.errors.get('mobile') : ''"
+          >
+            <el-input v-model="infoForm.mobile" placeholder="手机号码" />
+          </el-form-item>
+          <el-form-item
+            label="邮箱"
+            prop="email"
+            :error="infoForm.errors.has('email') ? infoForm.errors.get('email') : ''"
+          >
+            <el-input v-model="infoForm.email" placeholder="邮箱" />
+          </el-form-item>
+          <el-form-item
+            label="头像"
+            prop="avatar"
+            :error="infoForm.errors.has('avatar') ? infoForm.errors.get('avatar') : ''"
+          >
+            <!-- <el-input v-model="infoForm.avatar" placeholder="头像" /> -->
+            <el-upload
+              class="avatar-uploader"
+              :headers="uploadHeader"
+              :action="uploadAction"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :before-upload="beforeAvatarUpload"
+            >
+              <img v-if="infoForm.avatar" :src="infoForm.avatar" class="avatar">
+              <i v-else class="el-icon-plus avatar-uploader-icon" />
+            </el-upload>
+          </el-form-item>
+          <el-form-item
+            label="性别"
+            prop="sex"
+            :error="infoForm.errors.has('sex') ? infoForm.errors.get('sex') : ''"
+          >
+            <el-select v-model="infoForm.sex" class="filter-item" placeholder="请选择">
+              <el-option
+                v-for="(item, index) in sexOption"
+                :key="index"
+                :label="item"
+                :value="index"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+      </el-col>
+
+      <el-col :span="12">
+        <el-form
+          ref="dataInfoForm2"
+          label-position="left"
+          label-width="100px"
+          style="width: 280px;"
+        >
+          <el-form-item
+            label="昵称"
+            prop="nickname"
+            :error="infoForm.errors.has('nickname') ? infoForm.errors.get('nickname') : ''"
+          >
+            <el-input v-model="infoForm.nickname" placeholder="昵称" />
+          </el-form-item>
+          <el-form-item
+            label="真实姓名"
+            prop="real_name"
+            :error="infoForm.errors.has('real_name') ? infoForm.errors.get('real_name') : ''"
+          >
+            <el-input v-model="infoForm.real_name" placeholder="真实姓名" />
+          </el-form-item>
+          <el-form-item
+            label="身份证号码"
+            prop="idcard"
+            :error="infoForm.errors.has('idcard') ? infoForm.errors.get('idcard') : ''"
+          >
+            <el-input v-model="infoForm.idcard" placeholder="身份证号码" />
+          </el-form-item>
+          <el-form-item
+            label="余额"
+            prop="wallet"
+
+            :error="infoForm.errors.has('wallet') ? infoForm.errors.get('wallet') : ''"
+          >
+            <el-input v-model="infoForm.wallet" placeholder="余额" :disabled="hide" />
+          </el-form-item>
+          <el-form-item
+            label="注册IP"
+            prop="register_ip"
+
+            :error="infoForm.errors.has('register_ip') ? infoForm.errors.get('register_ip') : ''"
+          >
+            <el-input v-model="infoForm.register_ip" placeholder="注册IP" :disabled="hide" />
+          </el-form-item>
+          <el-form-item
+            label="最后登录IP"
+            prop="last_login_ip"
+
+            :error="infoForm.errors.has('last_login_ip') ? infoForm.errors.get('last_login_ip') : ''"
+          >
+            <el-input v-model="infoForm.last_login_ip" placeholder="最后登录IP" :disabled="hide" />
+          </el-form-item>
+          <el-form-item
+            label="最后登录时间"
+            prop="last_login_time"
+
+            :error="infoForm.errors.has('last_login_time') ? infoForm.errors.get('last_login_time') : ''"
+          >
+            <el-input v-model="infoForm.last_login_time" placeholder="最后登录IP" :disabled="hide" />
+          </el-form-item>
+        </el-form>
+      </el-col>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogInfoFormVisible = false">取消</el-button>
+        <el-button
+          type="primary"
+          :loading="submitLoading"
+          @click="updateInfoData()"
+        >确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -202,12 +367,36 @@
 .el-scrollbar__wrap {
   overflow-x: hidden;
 }
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409EFF;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 38px;
+  height: 38px;
+  line-height: 38px;
+  text-align: center;
+}
+.avatar {
+  width: 38px;
+  height: 38px;
+  display: block;
+}
 </style>
 
 <script>
 import Form from '@/utils/form'
 import waves from '@/directive/waves' // waves directive
 import { parseTime, getObjectKeys, allow, disable } from '@/utils'
+import { getToken } from '@/utils/auth'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 // import { mapGetters } from 'vuex'
 export default {
@@ -225,11 +414,13 @@ export default {
   },
   data() {
     return {
+      hide: true,
       btns: {
         add: true,
         edit: true,
         search: true,
-        export: true
+        export: true,
+        info: true
       },
       checkAll: false,
       isIndeterminate: true,
@@ -290,9 +481,10 @@ export default {
       listQuery: {
         page: 1,
         limit: 20,
-        sort: '*id'
+        sort: '-created_at'
       },
       dialogFormVisible: false,
+      dialogInfoFormVisible: false,
       dialogStatus: '',
       textMap: {
         update: '编辑',
@@ -300,7 +492,8 @@ export default {
       },
       downloadLoading: false,
       searchForm: new Form({
-        username: '',
+        field: 'Username',
+        val: '',
         status: '',
         created_at: '',
         role: ''
@@ -312,16 +505,42 @@ export default {
         status: '',
         role: []
       }),
+      infoSerachForm: new Form({
+
+      }),
+      infoForm: new Form({
+        'qq': '',
+        'weixin': '',
+        'mobile': '',
+        'mobile_area': '',
+        'email': '',
+        'avatar': '',
+        'sex': '',
+        'nickname': '',
+        'real_name': '',
+        'idcard': '',
+        'from_user_id': '',
+        'register_ip': '',
+        'last_login_ip': '',
+        'last_login_time': '',
+        'wallet': '',
+        'level_id': '',
+        'channel_id': '',
+        'user_id': ''
+      }),
       optionForm: new Form({
-        ins: 'status,role'
+        ins: 'status,role,sex,userSearchField'
       }),
       statusOption: [],
-      roleOption: []
+      roleOption: [],
+      sexOption: [],
+      userSearchFieldOption: [],
+      uploadAction: process.env.VUE_APP_BASE_API + '/upload',
+      uploadHeader: {
+        Authorization: 'Bearer ' + getToken()
+      }
     }
   },
-  // computed: {
-  //   ...mapGetters(['permission'])
-  // },
   mounted() {
     const allowOpen = allow('M:/user/user')
     if (allowOpen) {
@@ -329,6 +548,7 @@ export default {
       this.btns.edit = disable('N:Put:/user/{id}')
       this.btns.search = disable('N:Get:/user')
       this.btns.export = disable('V:/user/export')
+      this.btns.info = disable('N:Get:/user/info/{id}')
       const allowGetOption = allow('N:Get:/option')
       if (!this.btns.search) {
         this.getList()
@@ -340,16 +560,14 @@ export default {
     } else {
       this.$router.push('/401')
     }
+    // this.uploadActon = process.env.VUE_APP_BASE_API + '/upload'
   },
   methods: {
     handleCheckAllChange(val) {
       this.form.role = val ? getObjectKeys(this.roleOption) : []
-      // console.log(this.form.role)
       this.isIndeterminate = false
     },
     handleCheckedRoleChange(value) {
-      // console.log(value)
-      // let checkedCount = Object.keys(value).length
       const checkedCount = value.length
       this.checkAll = checkedCount === this.roleOption.length
       this.isIndeterminate =
@@ -384,6 +602,9 @@ export default {
       if (prop === 'id') {
         this.sortByID(order)
       }
+      if (prop === 'created_at') {
+        this.sortByCreatedAt(order)
+      }
     },
     sortByID(order) {
       if (order === 'ascending') {
@@ -393,14 +614,24 @@ export default {
       }
       this.handleFilter()
     },
+    sortByCreatedAt(order) {
+      if (order === 'ascending') {
+        this.listQuery.sort = '*created_at'
+      } else {
+        this.listQuery.sort = '-created_at'
+      }
+      this.handleFilter()
+    },
     getOptions() {
       this.optionForm.get('/option').then(({ data }) => {
         this.statusOption = data.data.status
         this.roleOption = data.data.role
+        this.sexOption = data.data.sex
+        this.userSearchFieldOption = data.data.userSearchField
       })
     },
     handleCreate() {
-      this.form.clear()
+      this.form.reset()
       this.form.status = 'Normal'
       this.dialogStatus = 'create'
       this.dialogFormVisible = true
@@ -419,7 +650,6 @@ export default {
           })
           this.submitLoading = false
           this.getList()
-          this.form.clear()
         })
         .catch(() => {
           this.submitLoading = false
@@ -434,8 +664,17 @@ export default {
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
     },
+    handleInfoUpdate(row) {
+      this.listLoading = true
+      this.infoSerachForm.get('/user/info/' + row.id).then(({ data }) => {
+        this.listLoading = false
+        this.infoForm.fill(data.data)
+        this.dialogInfoFormVisible = true
+      }).catch(() => {
+        this.listLoading = false
+      })
+    },
     updateData() {
-      // this.listLoading = false
       this.submitLoading = true
       this.form
         .put('/user/' + this.form.id)
@@ -449,8 +688,24 @@ export default {
           })
           this.submitLoading = false
           this.getList()
-          this.form.clear()
-          // this.listLoading = false
+        })
+        .catch(() => {
+          this.submitLoading = false
+        })
+    },
+    updateInfoData() {
+      this.submitLoading = true
+      this.infoForm
+        .put('/user/info/' + this.infoForm.user_id)
+        .then(({ data }) => {
+          this.dialogInfoFormVisible = false
+          this.$notify({
+            title: 'Success',
+            message: data.meta.message,
+            type: 'success',
+            duration: 2000
+          })
+          this.submitLoading = false
         })
         .catch(() => {
           this.submitLoading = false
@@ -493,6 +748,22 @@ export default {
           // });
         })
     },
+    handleAvatarSuccess(res, file) {
+      // this.infoForm.avatar = URL.createObjectURL(file.raw)
+      this.infoForm.avatar = res.data.url
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg'
+      const isLt2M = file.size / 1024 / 1024 < 2
+
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!')
+      }
+      return isJPG && isLt2M
+    },
     handleDownload() {
       this.downloadLoading = true
       import('@/vendor/Export2Excel').then(excel => {
@@ -533,5 +804,6 @@ export default {
           : ''
     }
   }
+
 }
 </script>

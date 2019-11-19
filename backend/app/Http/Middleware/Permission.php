@@ -64,23 +64,12 @@ class Permission
             $roleIds = $roleIds->pluck('id')->toArray();
         }
         $role = new Role;
-        // $role->refreshCache();
         $data = $role->getCacheMenuByRoleId($roleIds);
-        // dd($data);
         $menu = $data->where('request_type', ucfirst(strtolower($method)))->where('path', $pathInfo)->where('type', 'Node')->toArray();
-        // $menu = Menu::where('request_type', $method)->where('path', $pathInfo)->where('type', 'Node');
-        // if (!in_array(1, $roleIds)) {
-        //     $menu = $menu->whereHas('roles', function ($obj) use ($roleIds) {
-        //         $obj->whereIn('id', $roleIds);
-        //     });
-        // }
-        // dd($data->toArray());
         if (empty($menu)) {
             throw new AuthorizationException('权限不足' . $method . $pathInfo, 403);
         }
-
-        // $request->getMethod();
-
+        $request['menu'] = current($menu);
         return $next($request);
     }
 }
