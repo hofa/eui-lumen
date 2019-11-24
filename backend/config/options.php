@@ -4,6 +4,10 @@ return [
         'Succ' => '成功',
         'Fail' => '失败',
     ],
+    'yn' => [
+        'Yes' => '是',
+        'No' => '否',
+    ],
     'status' => [
         'Normal' => '正常',
         'Close' => '关闭',
@@ -67,5 +71,15 @@ return [
     'IPBlackWhiteListType' => [
         'White' => '白名单',
         'Black' => '黑名单',
+    ],
+    'userTag' => [
+        'LoginExcept' => '登录异常',
+        'Except' => '异常用户',
+        'Online' => '在线玩家',
+        'RefuseToWithdrawMoney' => '拒绝出款',
+        'ActiveUser' => '活跃玩家',
+    ],
+    'articleEditor' => [
+        'markdown' => 'markdown',
     ],
 ];

@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Redis;
 
 class IPBlackWhiteList extends Model
 {
@@ -24,19 +25,25 @@ class IPBlackWhiteList extends Model
         }
 
         $ips = self::where('role_id', 0)->where('type', 'Black')->get()->pluck('ip');
-        $ips = implode(' ', $ips);
-        Redis::sadd('ip_black_set:' . $roleId, $ips);
+        if (!empty($ips)) {
+            $ips = implode(' ', $ips->toArray());
+            Redis::sadd('ip_black_set:' . '0', $ips);
+        }
 
         foreach (Role::all() as $k => $v) {
             if ($v['ip_white_enabled'] == 'Normal') {
                 $ips = self::where('role_id', $v->id)->where('type', 'White')->get()->pluck('ip');
-                $ips = implode(' ', $ips);
-                Redis::sadd('ip_white_set:' . $v->id, $ips);
+                if (!empty($ips)) {
+                    $ips = implode(' ', $ips->toArray());
+                    Redis::sadd('ip_white_set:' . $v->id, $ips);
+                }
             }
 
             $ips = self::where('role_id', $v->id)->where('type', 'White')->get()->pluck('ip');
-            $ips = implode(' ', $ips);
-            Redis::sadd('ip_black_set:' . $v->id, $ips);
+            if (!empty($ips)) {
+                $ips = implode(' ', $ips->toArray());
+                Redis::sadd('ip_black_set:' . $v->id, $ips);
+            }
         }
     }
 
@@ -56,7 +63,7 @@ class IPBlackWhiteList extends Model
     public function isWhite($roleIds, $ip)
     {
         foreach ($roleIds as $roleId) {
-            if (Redis::exists('ip_white_set:' . $roleId)) {
+            if (!Redis::exists('ip_white_set:' . $roleId)) {
                 continue;
             }
             $t = Redis::sismember('ip_white_set:' . $roleId, $ip);

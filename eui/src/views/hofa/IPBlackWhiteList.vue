@@ -13,10 +13,20 @@
         placeholder="类型"
         clearable
         filterable
-        style="width: 220px"
+        style="width: 120px"
         class="filter-item"
       >
         <el-option v-for="(item, index) in typeOption" :key="index" :label="item" :value="index" />
+      </el-select>
+      <el-select
+        v-model="searchForm.role_id"
+        placeholder="角色"
+        clearable
+        filterable
+        style="width: 120px"
+        class="filter-item"
+      >
+        <el-option v-for="(item, index) in roleOption" :key="index" :label="item" :value="index" />
       </el-select>
       <el-button
         v-waves
@@ -46,11 +56,21 @@
       <el-button
         v-waves
         :loading="refreshLoading"
+        :disabled="btns.refresh"
         class="filter-item"
         type="primary"
         icon="el-icon-refresh"
         @click="handleRefresh"
-      >刷新角色缓存</el-button>
+      >刷新缓存</el-button>
+      <el-button
+        v-waves
+        :loading="refreshLoading"
+        :disabled="btns.delete"
+        class="filter-item"
+        type="danger"
+        icon="el-icon-delete"
+        @click="handleBatchDelete"
+      >批量删除IP</el-button>
     </div>
 
     <el-divider />
@@ -64,16 +84,12 @@
       highlight-current-row
       style="width: 100%;"
       @sort-change="sortChange"
+      @selection-change="handleSelectionChange"
     >
-      <el-table-column type="expand">
-        <template slot-scope="props">
-          <el-form label-position="left" inline class="demo-table-expand">
-            <el-form-item label="JSON数据">
-              <span>{{ props.row.diff }}</span>
-            </el-form-item>
-          </el-form>
-        </template>
-      </el-table-column>
+      <el-table-column
+        type="selection"
+        width="55"
+      />
       <el-table-column
         label="ID"
         prop="id"
@@ -87,11 +103,11 @@
         </template>
       </el-table-column>
       <el-table-column label="角色" width="120px" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.action_username }}</span>
+        <template slot-scope="{row}">
+          <span>{{ roleOption[row.role_id] }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="IP" width="100px" align="center">
+      <el-table-column label="IP" width="120px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.ip }}</span>
         </template>
@@ -103,7 +119,7 @@
       </el-table-column>
       <el-table-column label="类型" width="200px">
         <template slot-scope="{row}">
-          {{ typeOption[row.type] }}
+          <el-tag :type="row.type | typeFilter">{{ typeOption[row.type] }}</el-tag>
         </template>
       </el-table-column>
     </el-table>
@@ -182,7 +198,13 @@ export default {
   components: { Pagination },
   directives: { waves },
   filters: {
-
+    typeFilter(val) {
+      const typeMap = {
+        Black: 'danger',
+        White: ''
+      }
+      return typeMap[val]
+    }
   },
   data() {
     return {
@@ -204,16 +226,14 @@ export default {
       },
       downloadLoading: false,
       searchForm: new Form({
-        action_username: '',
-        username: '',
+        role_id: '',
         ip: '',
-        module_id: '',
-        created_at: ''
+        type: ''
       }),
       form: new Form({
         id: 0,
         role_id: 0,
-        type: 'White',
+        type: 'Black',
         ips: ''
       }),
       optionForm: new Form({
@@ -223,7 +243,9 @@ export default {
       roleOption: [],
       dialogFormVisible: false,
       refreshLoading: false,
-      submitLoading: false
+      deleteLoading: false,
+      submitLoading: false,
+      multipleSelection: []
     }
   },
 
@@ -231,7 +253,7 @@ export default {
     const allowOpen = allow('M:/log/IPBlackWhiteList')
     if (allowOpen) {
       this.btns.add = disable('N:Get:/IPBlackWhiteList')
-      this.btns.del = disable('N:Delete:/IPBlackWhiteList/{id}')
+      this.btns.delete = disable('N:Delete:/IPBlackWhiteList/{id}')
       this.btns.search = disable('N:Get:/IPBlackWhiteList')
       this.btns.export = disable('V:/IPBlackWhiteList/export')
       this.btns.refresh = disable('N:Post:/IPBlackWhiteList/refresh')
@@ -250,6 +272,40 @@ export default {
   },
 
   methods: {
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+    },
+    handleBatchDelete() {
+      if (this.multipleSelection == null || this.multipleSelection.length === 0) {
+        this.$notify({
+          title: '批量删除',
+          message: '请选择你要删除的项目',
+          type: 'error',
+          duration: 2000
+        })
+        return
+      }
+      const ids = []
+      for (const i in this.multipleSelection) {
+        ids.push(this.multipleSelection[i].id)
+      }
+      this.deleteLoading = true
+      const deleteForm = new Form({
+        ids: ids
+      })
+      deleteForm.delete('/IPBlackWhiteList/0').then(({ data }) => {
+        this.$notify({
+          title: 'Success',
+          message: data.meta.message,
+          type: 'success',
+          duration: 2000
+        })
+        this.getList()
+        this.deleteLoading = false
+      }).catch(() => {
+        this.deleteLoading = false
+      })
+    },
     handleRefresh() {
       this.refreshLoading = true
       getIPBlackWhiteListRefresh().then(({ data }) => {
@@ -383,3 +439,8 @@ export default {
   }
 }
 </script>
+<style>
+textarea {
+  height: 120px;
+}
+</style>

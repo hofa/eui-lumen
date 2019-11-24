@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\IPBlackWhiteList;
 use App\Models\Role;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -69,6 +70,16 @@ class Permission
         if (empty($menu)) {
             throw new AuthorizationException('权限不足' . $method . $pathInfo, 403);
         }
+
+        $ipbw = new IPBlackWhiteList;
+        if ($ipbw->isBlack($roleIds, $request->ip()) === true) {
+            throw new AuthorizationException('IP黑名单限制:' . $request->ip(), 403);
+        }
+
+        if ($ipbw->isWhite($roleIds, $request->ip()) !== true) {
+            throw new AuthorizationException('IP白名单限制:' . $request->ip(), 403);
+        }
+
         $request['menu'] = current($menu);
         return $next($request);
     }

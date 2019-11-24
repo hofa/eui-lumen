@@ -64,11 +64,27 @@ export const constantRoutes = [
       {
         path: 'user',
         component: () => import('@/views/hofa/user'),
-        meta: { title: '用户' }
+        meta: { title: '玩家' }
       },
       {
         path: 'level',
-        component: () => import('@/views/hofa/level')
+        component: () => import('@/views/hofa/level'),
+        meta: { title: '玩家层级' }
+      },
+      {
+        path: 'bank',
+        component: () => import('@/views/hofa/bank'),
+        meta: { title: '玩家银行卡' }
+      },
+      {
+        path: 'address',
+        component: () => import('@/views/hofa/address'),
+        meta: { title: '玩家收货地址' }
+      },
+      {
+        path: 'channel',
+        component: () => import('@/views/hofa/channel'),
+        meta: { title: '玩家渠道' }
       }
     ]
   },
@@ -92,6 +108,29 @@ export const constantRoutes = [
         path: 'IPBlackWhiteList',
         component: () => import('@/views/hofa/IPBlackWhiteList'),
         meta: { title: 'IP黑白名单' }
+      }
+    ]
+  },
+  {
+    path: '/contents',
+    component: Layout,
+    redirect: '/contents/article',
+    meta: { title: '系统设置' },
+    children: [
+      {
+        path: 'article',
+        component: () => import('@/views/hofa/article'),
+        meta: { title: '文章' }
+      },
+      {
+        path: 'atlas',
+        component: () => import('@/views/hofa/atlas'),
+        meta: { title: '图集' }
+      },
+      {
+        path: 'product',
+        component: () => import('@/views/hofa/product'),
+        meta: { title: '商品' }
       }
     ]
   },

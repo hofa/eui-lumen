@@ -70,6 +70,41 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     // $router->put('/IPBlackWhiteList/{id}', 'IPBlackWhiteListController@putIPBlackWhiteList');
     $router->delete('/IPBlackWhiteList/{id}', 'IPBlackWhiteListController@deleteIPBlackWhiteList');
     $router->post('/IPBlackWhiteList/refresh', 'IPBlackWhiteListController@refreshIPBlackWhiteList');
+
+    $router->get('/level', 'LevelController@getLevel');
+    $router->post('/level', 'LevelController@postLevel');
+    $router->put('/level/{id}', 'LevelController@putLevel');
+    $router->delete('/level/{id}', 'LevelController@deleteLevel');
+
+    $router->get('/channel', 'ChannelController@getChannel');
+    $router->post('/channel', 'ChannelController@postChannel');
+    $router->put('/channel/{id}', 'ChannelController@putChannel');
+    $router->delete('/channel/{id}', 'ChannelController@deleteChannel');
+
+    $router->get('/userBank', 'UserBankController@getUserBank');
+    $router->post('/userBank', 'UserBankController@postUserBank');
+    $router->put('/userBank/{id}', 'UserBankController@putUserBank');
+    $router->delete('/userBank/{id}', 'UserBankController@deleteUserBank');
+
+    $router->get('/userAddress', 'UserAddressController@getUserAddress');
+    $router->post('/userAddress', 'UserAddressController@postUserAddress');
+    $router->put('/userAddress/{id}', 'UserAddressController@putUserAddress');
+    $router->delete('/userAddress/{id}', 'UserAddressController@deleteUserAddress');
+
+    $router->get('/article', 'ArticleController@getArticle');
+    $router->post('/article', 'ArticleController@postArticle');
+    $router->put('/article/{id}', 'ArticleController@putArticle');
+    $router->delete('/article/{id}', 'ArticleController@deleteArticle');
+
+    $router->get('/atlas', 'AtlasController@getAtlas');
+    $router->post('/atlas', 'AtlasController@postAtlas');
+    $router->put('/atlas/{id}', 'AtlasController@putAtlas');
+    $router->delete('/atlas/{id}', 'AtlasController@deleteAtlas');
+
+    $router->get('/product', 'ProductController@getProduct');
+    $router->post('/product', 'ProductController@postProduct');
+    $router->put('/product/{id}', 'ProductController@putProduct');
+    $router->delete('/product/{id}', 'ProductController@deleteProduct');
 });
 
 $router->group(['middleware' => ['auth:api', 'ipWhite']], function () use ($router) {

@@ -2,8 +2,15 @@
   <div class="app-container">
     <div class="filter-container">
       <el-input
-        v-model="searchForm.name"
-        placeholder="名称"
+        v-model="searchForm.username"
+        placeholder="用户"
+        style="width: 200px;"
+        class="filter-item"
+        @keyup.enter.native="handleFilter"
+      />
+      <el-input
+        v-model="searchForm.bank_card"
+        placeholder="卡号"
         style="width: 200px;"
         class="filter-item"
         @keyup.enter.native="handleFilter"
@@ -38,21 +45,34 @@
       style="width: 100%;"
       @sort-change="sortChange"
     >
-      <el-table-column
-        label="ID"
-        prop="id"
-        sortable="custom"
-        align="center"
-        width="80"
-        :class-name="getSortClass('id')"
-      >
+      <el-table-column label="用户" width="150px" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.id }}</span>
+          <span>{{ scope.row.username }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="层级" width="150px" align="center">
+      <el-table-column label="银行" width="150px" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.name }}</span>
+          <span>{{ scope.row.bank_name }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="支行" width="150px" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.bank_branch }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="卡号" width="150px" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.bank_card }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="收款人" width="150px" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.real_name }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="是否默认" width="150px" align="center">
+        <template slot-scope="scope">
+          <span>{{ ynOption[scope.row.is_default] }}</span>
         </template>
       </el-table-column>
       <el-table-column label="创建时间" min-width="200px" align="center">
@@ -84,13 +104,64 @@
         style="width: 400px; margin-left:50px;"
       >
         <el-form-item
-          label="层级"
-          prop="name"
-          :error="form.errors.has('name') ? form.errors.get('name') : ''"
+          label="账号"
+          prop="username"
+          :error="form.errors.has('username') ? form.errors.get('username') : ''"
+          :disabled="dialogStatus==='create'?false:true"
         >
-          <el-input v-model="form.name" placeholder="层级" />
+          <el-input v-model="form.username" placeholder="账号" />
         </el-form-item>
+
+        <el-form-item
+          label="银行名称"
+          prop="bank_name"
+          :error="form.errors.has('bank_name') ? form.errors.get('bank_name') : ''"
+        >
+          <el-input v-model="form.bank_name" placeholder="银行名称" />
+        </el-form-item>
+
+        <el-form-item
+          label="支行名称"
+          prop="bank_branch"
+          :error="form.errors.has('bank_branch') ? form.errors.get('bank_branch') : ''"
+        >
+          <el-input v-model="form.bank_branch" placeholder="支行名称" />
+        </el-form-item>
+
+        <el-form-item
+          label="银行卡号"
+          prop="bank_card"
+          :error="form.errors.has('bank_card') ? form.errors.get('bank_card') : ''"
+        >
+          <el-input v-model="form.bank_card" placeholder="银行卡号" />
+        </el-form-item>
+
+        <el-form-item
+          label="收款人"
+          prop="real_name"
+          :error="form.errors.has('real_name') ? form.errors.get('real_name') : ''"
+        >
+          <el-input v-model="form.real_name" placeholder="收款人" />
+        </el-form-item>
+
+        <el-form-item
+          label="是否默认"
+          prop="is_default"
+          :error="form.errors.has('is_default') ? form.errors.get('is_default') : ''"
+        >
+          <el-select
+            v-model="form.is_default"
+            placeholder="是否默认"
+            clearable
+            style="width: 90px"
+            class="filter-item"
+          >
+            <el-option v-for="(item, index) in ynOption" :key="index" :label="item" :value="index" />
+          </el-select>
+        </el-form-item>
+
       </el-form>
+
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
         <el-button
@@ -139,25 +210,39 @@ export default {
         create: '新增'
       },
       searchForm: new Form({
-        name: '',
-        status: ''
+        username: '',
+        bank_card: ''
       }),
       form: new Form({
         id: 0,
-        name: ''
+        username: '',
+        bank_name: '',
+        bank_branch: '',
+        bank_card: '',
+        real_name: '',
+        is_default: 'Yes'
+      }),
+      ynOption: [],
+      optionForm: new Form({
+        ins: 'yn'
       })
     }
   },
   mounted() {
-    const allowOpen = allow('M:/user/level')
+    const allowOpen = allow('M:/user/bank')
     if (allowOpen) {
-      this.btns.add = disable('N:Post:/level')
-      this.btns.edit = disable('N:Put:/level/{id}')
-      this.btns.delete = disable('N:Delete:/level/{id}')
-      this.btns.search = disable('N:Get:/level')
+      this.btns.add = disable('N:Post:/userBank')
+      this.btns.edit = disable('N:Put:/userBank/{id}')
+      this.btns.delete = disable('N:Delete:/userBank/{id}')
+      this.btns.search = disable('N:Get:/userBank')
 
       if (this.btns.search === false) {
         this.getList()
+      }
+      const allowGetOption = allow('N:Get:/option')
+
+      if (allowGetOption) {
+        this.getOptions()
       }
     } else {
       this.$router.push('/401')
@@ -165,11 +250,16 @@ export default {
   },
 
   methods: {
+    getOptions() {
+      this.optionForm.get('/option').then(({ data }) => {
+        this.ynOption = data.data.yn
+      })
+    },
     getList() {
       this.listLoading = true
       this.searchForm
         .get(
-          '/level?page=' +
+          '/userBank?page=' +
             this.listQuery.page +
             '&psize=' +
             this.listQuery.limit +
@@ -204,14 +294,14 @@ export default {
       this.handleFilter()
     },
     handleCreate() {
-      this.form.clear()
+      this.form.reset()
       this.dialogStatus = 'create'
       this.dialogFormVisible = true
     },
     createData() {
       this.submitLoading = true
       this.form
-        .post('/level')
+        .post('/userBank')
         .then(({ data }) => {
           this.dialogFormVisible = false
           this.$notify({
@@ -236,7 +326,7 @@ export default {
     updateData() {
       this.submitLoading = true
       this.form
-        .put('/level/' + this.form.id)
+        .put('/userBank/' + this.form.id)
         .then(({ data }) => {
           this.dialogFormVisible = false
           this.$notify({
@@ -255,7 +345,7 @@ export default {
     handleDelete(row) {
       this.form.fill(row)
       this.$confirm(
-        '此操作将永久删除【' + this.form.name + '】层级, 是否继续?',
+        '此操作将永久删除【' + this.form.bank_card + '】银行卡, 是否继续?',
         '提示',
         {
           confirmButtonText: '确定',
@@ -266,7 +356,7 @@ export default {
         .then(() => {
           this.listLoading = true
           this.form
-            .delete('/level/' + this.form.id)
+            .delete('/userBank/' + this.form.id)
             .then(({ data }) => {
               this.$notify({
                 title: 'Success',

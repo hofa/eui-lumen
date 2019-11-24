@@ -15,7 +15,17 @@ class MenuController extends Controller
         $menu = Menu::findOrFail($id);
         $menu->roles()->detach();
         $menu->delete();
-        return (new MenuResource($menu))->additional(['meta' => ['message' => '删除成功']]);
+
+        $resource = new MenuResource($menu);
+        ActionLog::create([
+            'user_id' => 0,
+            'action_user_id' => Auth::user()->id,
+            'module_id' => $request['menu']['id'],
+            'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
+            'mark' => '删除菜单',
+            'ip' => $request->ip(),
+        ]);
+        return $resource->additional(['meta' => ['message' => '删除成功']]);
     }
 
     public function postMenu(Request $request)
@@ -68,6 +78,7 @@ class MenuController extends Controller
         $menu->fill($request->only([
             'title', 'display', 'type', 'request_type', 'sorted', 'status', 'path', 'parent_id', 'icon',
         ]))->save();
+        $resource = new MenuResource($menu);
         $diff = $collection->diff($resource->toArray($request));
         if (!empty($diff)) {
             ActionLog::create([

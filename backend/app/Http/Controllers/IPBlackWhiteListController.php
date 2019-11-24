@@ -54,25 +54,38 @@ class IPBlackWhiteListController extends Controller
             'action_user_id' => Auth::user()->id,
             'module_id' => $request['menu']['id'],
             'diff' => json_encode(['ips' => $ips, 'type' => $request->input('type')], JSON_UNESCAPED_UNICODE),
-            'mark' => 'IP ' . $this->input('type'),
+            'mark' => 'IP ' . $require->input('type'),
             'ip' => $request->ip(),
         ]);
-        return ['meta' => ['message' => '解封成功']];
+        return ['meta' => ['message' => '新增IP白名单']];
     }
 
     public function deleteIPBlackWhiteList(request $request, $id)
     {
-        $IPBlackWhiteList = IPBlackWhiteList::findOrFail($id);
-        $IPBlackWhiteList->delete();
-        ActionLog::create([
-            'user_id' => $id,
-            'action_user_id' => Auth::user()->id,
-            'module_id' => $request['menu']['id'],
-            'diff' => $IPBlackWhiteList->toJson(),
-            'mark' => '删除Ip',
-            'ip' => $request->ip(),
-        ]);
-        return ['meta' => ['message' => '解封成功']];
+        if ($id > 0) {
+            $IPBlackWhiteList = IPBlackWhiteList::findOrFail($id);
+            $IPBlackWhiteList->delete();
+            ActionLog::create([
+                'user_id' => 0,
+                'action_user_id' => Auth::user()->id,
+                'module_id' => $request['menu']['id'],
+                'diff' => $IPBlackWhiteList->toJson(),
+                'mark' => '删除Ip',
+                'ip' => $request->ip(),
+            ]);
+        } else if (!empty($request->input('ids'))) {
+            $IPBlackWhiteLists = IPBlackWhiteList::whereIn('id', $request->input('ids'))->get();
+            IPBlackWhiteList::whereIn('id', $request->input('ids'))->delete();
+            ActionLog::create([
+                'user_id' => 0,
+                'action_user_id' => Auth::user()->id,
+                'module_id' => $request['menu']['id'],
+                'diff' => $IPBlackWhiteLists->toJson(),
+                'mark' => '批量删除Ip',
+                'ip' => $request->ip(),
+            ]);
+        }
+        return ['meta' => ['message' => '删除IP成功']];
     }
 
     public function refreshIPBlackWhiteList(request $request)
