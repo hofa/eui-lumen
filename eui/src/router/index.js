@@ -118,6 +118,11 @@ export const constantRoutes = [
     meta: { title: '系统设置' },
     children: [
       {
+        path: 'nav',
+        component: () => import('@/views/hofa/nav'),
+        meta: { title: '导航' }
+      },
+      {
         path: 'article',
         component: () => import('@/views/hofa/article'),
         meta: { title: '文章' }

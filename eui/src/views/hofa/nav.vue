@@ -17,13 +17,13 @@
     >
       <span slot-scope="{ node, data }" class="custom-tree-node">
         <span>
-          <i v-if="data.display=='Normal' && data.type=='Menu' && data.status=='Normal'" class="el-icon-view" />
+          <i v-if="data.display=='Normal' && data.is_link=='No' && data.status=='Normal'" class="el-icon-view" />
           <i v-if="data.status=='Close'" class="el-icon-delete-solid" />
           {{ node.label }}
         </span>
         <span>
           <el-button
-            v-if="data.type == 'Menu'"
+            v-if="data.is_link=='No'"
             type="text"
             size="mini"
             :disabled="btns.add"
@@ -75,19 +75,11 @@
         </el-form-item>
 
         <el-form-item
-          label="路径"
-          prop="path"
-          :error="form.errors.has('path') ? form.errors.get('path') : ''"
+          label="描述"
+          prop="desc"
+          :error="form.errors.has('desc') ? form.errors.get('desc') : ''"
         >
-          <el-input v-model="form.path" placeholder="路径" />
-        </el-form-item>
-
-        <el-form-item
-          label="图标"
-          prop="icon"
-          :error="form.errors.has('icon') ? form.errors.get('icon') : ''"
-        >
-          <el-input v-model="form.icon" placeholder="图标" />
+          <el-input v-model="form.desc" placeholder="描述" />
         </el-form-item>
 
         <el-form-item
@@ -96,14 +88,6 @@
           :error="form.errors.has('sorted') ? form.errors.get('sorted') : ''"
         >
           <el-input v-model="form.sorted" placeholder="排序" />
-        </el-form-item>
-
-        <el-form-item
-          label="扩展数据"
-          prop="extends"
-          :error="form.errors.has('extends') ? form.errors.get('extends') : ''"
-        >
-          <el-input v-model="form.extends" placeholder="扩展数据" />
         </el-form-item>
 
         <el-form-item
@@ -152,18 +136,52 @@
         </el-form-item>
 
         <el-form-item
-          label="请求类型"
-          prop="request_type"
-          :error="form.errors.has('request_type') ? form.errors.get('request_type') : ''"
+          label="是否链接"
+          prop="is_link"
+          :error="form.errors.has('is_link') ? form.errors.get('is_link') : ''"
         >
-          <el-select v-model="form.request_type" class="filter-item" placeholder="请选择">
+          <el-select v-model="form.is_link" class="filter-item" placeholder="请选择">
             <el-option
-              v-for="(item, index) in requestTypeOption"
+              v-for="(item, index) in ynOption"
               :key="index"
               :label="item"
               :value="index"
             />
           </el-select>
+        </el-form-item>
+
+        <el-form-item
+          v-show="form.is_link=='Yes'"
+          label="链接地址"
+          prop="link_address"
+          :error="form.errors.has('link_address') ? form.errors.get('link_address') : ''"
+        >
+          <el-input v-model="form.link_address" placeholder="链接地址" />
+        </el-form-item>
+
+        <el-form-item
+          v-show="form.is_link=='No'"
+          label="SEO路径"
+          prop="path"
+          :error="form.errors.has('path') ? form.errors.get('path') : ''"
+        >
+          <el-input v-model="form.path" placeholder="SEO路径" />
+        </el-form-item>
+
+        <el-form-item
+          label="扩展数据"
+          prop="extends"
+          :error="form.errors.has('extends') ? form.errors.get('extends') : ''"
+        >
+          <el-input v-model="form.extends" placeholder="扩展数据" />
+        </el-form-item>
+
+        <el-form-item
+          label="Flag"
+          prop="flag"
+          :error="form.errors.has('flag') ? form.errors.get('flag') : ''"
+        >
+          <el-input v-model="form.flag" placeholder="标识" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -215,21 +233,23 @@ export default {
         parent_id: 0,
         title: '',
         path: '',
-        icon: '',
-        type: '',
-        request_type: '',
+        desc: '',
+        flag: '',
+        type: 'Normal',
+        is_link: 'No',
+        link_address: '',
         sorted: '0',
         extends: '',
         display: 'Normal',
         status: 'Normal'
       }),
       optionForm: new Form({
-        ins: 'status,display,menuType,requestType'
+        ins: 'status,display,navType,yn'
       }),
       statusOption: [],
       displayOption: [],
       typeOption: [],
-      requestTypeOption: []
+      ynOption: []
     }
   },
   watch: {
@@ -238,12 +258,12 @@ export default {
     }
   },
   mounted() {
-    const allowOpen = allow('M:/setting/menu')
+    const allowOpen = allow('M:/contents/nav')
     if (allowOpen) {
-      this.btns.add = disable('N:Post:/menu')
-      this.btns.edit = disable('N:Put:/menu/{id}')
-      this.btns.delete = disable('N:Delete:/menu/{id}')
-      this.btns.search = disable('N:Get:/menu')
+      this.btns.add = disable('N:Post:/nav')
+      this.btns.edit = disable('N:Put:/nav/{id}')
+      this.btns.delete = disable('N:Delete:/nav/{id}')
+      this.btns.search = disable('N:Get:/nav')
       const allowGetOption = allow('N:Get:/option')
       if (this.btns.search === false) {
         this.getList()
@@ -264,7 +284,7 @@ export default {
     },
     getList() {
       this.searchForm
-        .get('/menu')
+        .get('/nav')
         .then(({ data }) => {
           this.menusData = []
           this.menusData = data.data
@@ -276,8 +296,8 @@ export default {
       this.optionForm.get('/option').then(({ data }) => {
         this.statusOption = data.data.status
         this.displayOption = data.data.display
-        this.typeOption = data.data.menuType
-        this.requestTypeOption = data.data.requestType
+        this.typeOption = data.data.navType
+        this.ynOption = data.data.yn
       })
     },
     handleCreate(data) {
@@ -289,7 +309,7 @@ export default {
     create2Data() {
       this.submitLoading = true
       this.form
-        .post('/menu')
+        .post('/nav')
         .then(({ data }) => {
         //   this.dialogFormVisible = false
           this.$notify({
@@ -308,7 +328,7 @@ export default {
     createData() {
       this.submitLoading = true
       this.form
-        .post('/menu')
+        .post('/nav')
         .then(({ data }) => {
           this.dialogFormVisible = false
           this.$notify({
@@ -333,7 +353,7 @@ export default {
     updateData() {
       this.submitLoading = true
       this.form
-        .put('/menu/' + this.form.id)
+        .put('/nav/' + this.form.id)
         .then(({ data }) => {
           this.dialogFormVisible = false
           this.$notify({
@@ -352,7 +372,7 @@ export default {
     handleDelete(row) {
       this.form.fill(row)
       this.$confirm(
-        '此操作将永久删除【' + this.form.title + '】菜单, 是否继续?',
+        '此操作将永久删除【' + this.form.title + '】导航, 是否继续?',
         '提示',
         {
           confirmButtonText: '确定',
@@ -363,7 +383,7 @@ export default {
         .then(() => {
           this.listLoading = true
           this.form
-            .delete('/menu/' + this.form.id)
+            .delete('/nav/' + this.form.id)
             .then(({ data }) => {
               this.$notify({
                 title: 'Success',

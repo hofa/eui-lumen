@@ -82,4 +82,11 @@ return [
     'articleEditor' => [
         'markdown' => 'markdown',
     ],
+    'navType' => [
+        'Normal' => '普通导航',
+        'Article' => '文章导航',
+        'Product' => '商品导航',
+        'Altas' => '图集导航',
+        'Link' => '链接导航',
+    ],
 ];

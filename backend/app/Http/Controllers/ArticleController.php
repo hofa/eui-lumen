@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\ValidatorException;
-use App\Helpers\Tools;
 use App\Http\Resources\Article as ArticleResource;
 use App\Models\ActionLog;
 use App\Models\Article;
+use App\Models\Nav;
 use App\Models\User;
-use App\rules\BankNum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -17,7 +15,7 @@ class ArticleController extends Controller
 {
     public function deleteArticle(Request $request, $id)
     {
-        $id = Tools::getIdByHash($id);
+        // $id = Tools::getIdByHash($id);
         $article = Article::findOrFail($id);
         $article->delete();
         $resource = new ArticleResource($article);
@@ -34,25 +32,31 @@ class ArticleController extends Controller
 
     public function postArticle(Request $request)
     {
+        $navIds = (array) $request->input('nav_ids');
         $status = array_keys(config('options.status'));
         $this->validate($request, [
             'title' => 'required',
             'content' => 'required',
-            'is_display' => Rule::in($status),
+            'status' => Rule::in($status),
         ]);
 
-        $user = User::where('username', $request->input('username'))->first();
         $data = $request->only([
             'title',
             'content',
             'template',
-            'is_display',
+            'status',
         ]);
-        $data['user_id'] = $user->id;
+        $data['user_id'] = Auth::user()->id;
         $article = Article::create($data);
+        foreach ($navIds as $id) {
+            $nav = Nav::find($id);
+            if (!empty($nav)) {
+                $article->navs()->attach($nav);
+            }
+        }
         $resource = new ArticleResource($article);
         ActionLog::create([
-            'user_id' => $data['user_id'],
+            'user_id' => Auth::user()->id,
             'action_user_id' => Auth::user()->id,
             'module_id' => $request['menu']['id'],
             'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
@@ -64,36 +68,31 @@ class ArticleController extends Controller
 
     public function putArticle(Request $request, $id)
     {
-        $id = Tools::getIdByHash($id);
-        $yn = array_keys(config('options.yn'));
+        // $id = Tools::getIdByHash($id);
         $article = Article::findOrFail($id);
+        $navIds = (array) $request->input('nav_ids');
+        $status = array_keys(config('options.status'));
         $this->validate($request, [
-            // 'username' => 'required|exists:user',
-            'bank_name' => 'required',
-            'bank_branch' => 'required',
-            // 'bank_card' => ['required', Rule::unique('user_bank')->ignore($id), new BankNum],
-            'bank_card' => ['required', new BankNum],
-            'real_name' => 'required',
-            'is_default' => Rule::in($yn),
+            'title' => 'required',
+            'content' => 'required',
+            'status' => Rule::in($status),
         ]);
+
         $data = $request->only([
-            'bank_name',
-            'bank_branch',
-            'bank_card',
-            'real_name',
-            'is_default',
+            'title',
+            'content',
+            'template',
+            'status',
         ]);
-        $data['bank_card'] = Tools::encrypt($data['bank_card']);
-        $card = Article::where('bank_card', $data['bank_card'])->Where('id', '!=', $id)->first();
-        if (!empty($card)) {
-            ValidatorException::setError('bank_card', '银行卡号已存在');
+        $article->navs()->detach();
+        foreach ($navIds as $id) {
+            $nav = Nav::find($id);
+            if (!empty($nav)) {
+                $article->navs()->attach($nav);
+            }
         }
         $oldResource = new ArticleResource($article);
         $collection = collect($oldResource->toArray($request));
-        $isDefault = $request->input('is_default');
-        if ($isDefault == 'Yes') {
-            Article::where('user_id', $article->user_id)->update(['is_default' => 'No']);
-        }
         $article->fill($data)->save();
         $resource = new ArticleResource($article);
         $diff = $collection->diff($resource->toArray($request));
@@ -116,8 +115,15 @@ class ArticleController extends Controller
         $id = $request->input('id');
         $title = $request->input('title');
         $username = $request->input('username');
+        $navIds = $request->input('nav_ids');
         $id && $article = $article->where('id', $id);
         $title && $article = $article->where('title', $title);
+
+        if (!empty($navIds)) {
+            $article = $article->wherehas('navs', function ($r) use ($navIds) {
+                return $r->whereIn('nav_id', $navIds);
+            });
+        }
 
         if (!empty($username)) {
             $article = $article->wherehas('user', function ($r) use ($username) {
@@ -134,5 +140,12 @@ class ArticleController extends Controller
         $data = $article->paginate($pageSize)->appends($request->query());
 
         return ArticleResource::collection($data);
+    }
+
+    public function getArticleNav(Request $request)
+    {
+        $nav = new Nav;
+
+        return ['data' => $nav->getNavByCache(0, 'Article', 'Normal', 1)];
     }
 }

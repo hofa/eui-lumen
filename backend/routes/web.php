@@ -18,11 +18,11 @@ $router->get('/', function () use ($router) {
     // $results = DB::select("SELECT * FROM users");
     return $router->app->version();
 });
-
+$router->get('/test', 'ExampleController@getUser');
+$router->get('/test2', 'ExampleController@test2');
 // $router->get('/test', 'ExampleController@getUser');
 // 使用 auth:api 中间件 'auth:api',
 $router->group(['middleware' => ['permission:api']], function () use ($router) {
-    $router->get('/test', 'ExampleController@getUser');
 
     $router->get('/roleMenu', 'RoleMenuController@getMenu');
     $router->get('/roleSidebar', 'RoleMenuController@getRoleSidebar');
@@ -64,6 +64,7 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     $router->get('/actionLog', 'ActionLogController@getActionLog');
 
     $router->post('/upload', 'UploadController@postUpload');
+    $router->delete('/upload', 'UploadController@deleteUpload');
 
     $router->get('/IPBlackWhiteList', 'IPBlackWhiteListController@getIPBlackWhiteList');
     $router->post('/IPBlackWhiteList', 'IPBlackWhiteListController@postIPBlackWhiteList');
@@ -91,10 +92,16 @@ $router->group(['middleware' => ['permission:api']], function () use ($router) {
     $router->put('/userAddress/{id}', 'UserAddressController@putUserAddress');
     $router->delete('/userAddress/{id}', 'UserAddressController@deleteUserAddress');
 
+    $router->get('/nav', 'NavController@getNav');
+    $router->post('/nav', 'NavController@postNav');
+    $router->put('/nav/{id}', 'NavController@putNav');
+    $router->delete('/nav/{id}', 'NavController@deleteNav');
+
     $router->get('/article', 'ArticleController@getArticle');
     $router->post('/article', 'ArticleController@postArticle');
     $router->put('/article/{id}', 'ArticleController@putArticle');
     $router->delete('/article/{id}', 'ArticleController@deleteArticle');
+    $router->get('/article/nav', 'ArticleController@getArticleNav');
 
     $router->get('/atlas', 'AtlasController@getAtlas');
     $router->post('/atlas', 'AtlasController@postAtlas');
