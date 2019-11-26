@@ -89,4 +89,15 @@ return [
         'Altas' => '图集导航',
         'Link' => '链接导航',
     ],
+    'smsType' => [
+        'Dingdong' => '叮咚云',
+        'Shouyi' => '首易',
+        'Spare' => '聚通达',
+        'Jiguang' => '极光',
+    ],
+    'storageType' => [
+        'Local' => '本地存储',
+        'AliyunOSS' => '阿里云OSS',
+        'Qiniu' => '七牛云存储',
+    ],
 ];

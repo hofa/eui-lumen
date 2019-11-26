@@ -8,6 +8,8 @@ use App\Models\ActionLog;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserInfo;
+use DB;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -57,96 +59,109 @@ class UserController extends Controller
 
     public function postUser(Request $request)
     {
-        $statusKeys = array_keys(config('options.status'));
-        $this->validate($request, [
-            'username' => 'required|unique:user',
-            'password' => 'required|password',
-            'status' => [
-                'required',
-                Rule::in($statusKeys),
-            ],
-        ]);
-        $data = $request->only(['username', 'password', 'status']);
-        $data['password'] = Hash::make($data['password']);
-        $user = User::create($data);
-        $roleIds = (array) $request->input('role');
-        foreach ($roleIds as $id) {
-            $role = Role::find($id);
-            $user->roles()->attach($role);
-        }
+        try {
+            DB::beginTransaction();
+            $statusKeys = array_keys(config('options.status'));
+            $this->validate($request, [
+                'username' => 'required|unique:user',
+                'password' => 'required|password',
+                'status' => [
+                    'required',
+                    Rule::in($statusKeys),
+                ],
+            ]);
+            $data = $request->only(['username', 'password', 'status']);
+            $data['password'] = Hash::make($data['password']);
+            $user = User::create($data);
+            $roleIds = (array) $request->input('role');
+            foreach ($roleIds as $id) {
+                $role = Role::find($id);
+                $user->roles()->attach($role);
+            }
 
-        UserInfo::create([
-            'user_id' => $user->id,
-            'from_user_id' => Auth::user()->id,
-            'register_ip' => $request->ip(),
-            'nickname' => $request->input('username'),
-        ]);
+            UserInfo::create([
+                'user_id' => $user->id,
+                'from_user_id' => Auth::user()->id,
+                'register_ip' => $request->ip(),
+                'nickname' => $request->input('username'),
+            ]);
 
-        $resource = new UserResource($user);
-        ActionLog::create([
-            'user_id' => $user->id,
-            'action_user_id' => Auth::user()->id,
-            'module_id' => $request['menu']['id'],
-            'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
-            'mark' => '创建账号',
-            'ip' => $request->ip(),
-        ]);
-        return $resource->additional(['meta' => [
-            'message' => '创建成功',
-        ]]);
-    }
-
-    public function putUser(Request $request, $id)
-    {
-        $id = Tools::getIdByHash($id);
-        $user = User::findOrFail($id);
-        $this->validate($request, [
-            'status' => 'required',
-        ]);
-
-        $fillFields = ['status'];
-        if (!empty($request->input('password'))) {
-            $fillFields[] = 'password';
-        }
-        $data = $request->only($fillFields);
-        if (!empty($request->input('password'))) {
-            $data['password'] = Hash::make($request->input('password'));
-        }
-        $oldResource = new UserResource($user);
-        // $collection = collect($oldResource->toArray($request));
-        $user->fill($data)->save();
-        $user->roles()->detach();
-        $roleIds = (array) $request->input('role');
-        foreach ($roleIds as $id) {
-            $role = Role::find($id);
-            $user->roles()->attach($role);
-        }
-
-        $resource = new UserResource($user);
-        // $collection = collect($resource->toArray($request));
-        $diff = $collection->diff($oldResource);
-        if (!empty($request->input('password'))) {
-            $password = $request->input('password');
-            $start = mb_substr($password, 0, 2);
-            $end = mb_substr($password, -1, 2);
-            $length = mb_strlen($password) - 4;
-            $password = $start . str_repeat('*', $length) . $end;
-            $diff['password'] = $password;
-        }
-
-        if (!empty($diff)) {
+            $resource = new UserResource($user);
             ActionLog::create([
                 'user_id' => $user->id,
                 'action_user_id' => Auth::user()->id,
                 'module_id' => $request['menu']['id'],
-                'diff' => json_encode($diff, JSON_UNESCAPED_UNICODE),
-                'mark' => '修改账号',
+                'diff' => json_encode($resource->toArray($request), JSON_UNESCAPED_UNICODE),
+                'mark' => '创建账号',
                 'ip' => $request->ip(),
             ]);
+            DB::commit();
+            return $resource->additional(['meta' => [
+                'message' => '创建成功',
+            ]]);
+        } catch (Exception $e) {
+            DB::rollback();
+            throw $e;
         }
-        return $resource->additional(['meta' => [
-            'message' => '修改成功',
-        ]]);
+    }
+
+    public function putUser(Request $request, $id)
+    {
+        try {
+            DB::beginTransaction();
+            $id = Tools::getIdByHash($id);
+            $user = User::findOrFail($id);
+            $this->validate($request, [
+                'status' => 'required',
+            ]);
+
+            $fillFields = ['status'];
+            if (!empty($request->input('password'))) {
+                $fillFields[] = 'password';
+            }
+            $data = $request->only($fillFields);
+            if (!empty($request->input('password'))) {
+                $data['password'] = Hash::make($request->input('password'));
+            }
+            $oldResourceData = (new UserResource($user))->toArray($request);
+            $user->fill($data)->save();
+            $user->roles()->detach();
+            $roleIds = (array) $request->input('role');
+            foreach ($roleIds as $id) {
+                $role = Role::find($id);
+                $user->roles()->attach($role);
+            }
+
+            $resource = new UserResource($user);
+            $diff = Tools::twoDimensionalArrayDiff($oldResourceData, $resource->toArray($request));
+            if (!empty($request->input('password'))) {
+                $password = $request->input('password');
+                $start = mb_substr($password, 0, 2);
+                $end = mb_substr($password, -1, 2);
+                $length = mb_strlen($password) - 4;
+                $password = $start . str_repeat('*', $length) . $end;
+                $diff['password']['n1'] = '******';
+                $diff['password']['n2'] = $password;
+            }
+
+            if (!empty($diff)) {
+                ActionLog::create([
+                    'user_id' => $user->id,
+                    'action_user_id' => Auth::user()->id,
+                    'module_id' => $request['menu']['id'],
+                    'diff' => json_encode($diff, JSON_UNESCAPED_UNICODE),
+                    'mark' => '修改账号',
+                    'ip' => $request->ip(),
+                ]);
+            }
+            DB::commit();
+            return $resource->additional(['meta' => [
+                'message' => '修改成功',
+            ]]);
+        } catch (Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
     }
 
     public function patchPassword(Request $request)

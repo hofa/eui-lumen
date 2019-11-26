@@ -387,4 +387,37 @@ class Tools
         }
         return $ret;
     }
+
+    public static function twoDimensionalArrayDiff($v1, $v2)
+    {
+        app('log')->info($v1, $v2);
+        $v1 = !empty($v1) && is_array($v1) ? $v1 : [];
+        $v2 = !empty($v2) && is_array($v2) ? $v2 : [];
+
+        $vk1 = array_keys($v1);
+        $vk2 = array_keys($v2);
+        $vk = array_unique(array_merge($vk1, $vk2));
+        $output = [];
+        $is = false;
+        foreach ($vk as $k) {
+            $v1[$k] = $v1[$k] ?? null;
+            $v2[$k] = $v2[$k] ?? null;
+            if (!is_array($v1[$k]) && $v1[$k] == $v2[$k]) {
+                continue;
+            }
+
+            if (is_array($v1[$k]) || is_array($v2[$k])) {
+                $diff = array_diff($v1[$k], $v2[$k]);
+                info('diff', $diff);
+                if (empty($diff)) {
+                    continue;
+                }
+            }
+            $output[$k] = [];
+            $output[$k]['n1'] = $v1[$k];
+            $output[$k]['n2'] = $v2[$k];
+            $is = true;
+        }
+        return $is ? $output : null;
+    }
 }
