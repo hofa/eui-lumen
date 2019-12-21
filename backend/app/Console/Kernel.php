@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\MenuCache::class,
+        Commands\Backup::class,
         Commands\UserInfoSeeder::class,
     ];
 

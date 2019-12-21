@@ -1,0 +1,17 @@
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('41','2','1','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('42','2','2','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('43','2','3','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('44','2','4','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('45','2','5','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('46','2','28','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('47','2','6','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('48','2','11','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('49','2','12','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('50','2','13','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('51','2','14','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('52','2','15','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('53','2','22','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('54','2','27','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('55','2','18','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('56','2','20','','');
+insert `role_menu`(`id`,`role_id`,`menu_id`,`created_at`,`updated_at`) values('57','2','21','','');
